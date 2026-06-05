@@ -8,18 +8,20 @@ on:
 permissions:
   contents: write
 
+# บังคับใช้ Node.js 24 ตามข้อกำหนดใหม่ของ GitHub ปี 2026
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        # อัปเดตเป็น v4 เพื่อแก้ Warning ของ Node.js
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        # อัปเดตเป็น v5 เพื่อแก้ Warning ของ Node.js
-        uses: actions/setup-python@v5 
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -32,7 +34,6 @@ jobs:
         run: python scanner.py
 
       - name: Commit and Push JSON Data
-        # ปรับสูตร Commit ใหม่ ถ้าไม่มีอะไรเปลี่ยนก็ให้ข้ามไปเลย ไม่ต้องแจ้ง Error (|| true)
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
