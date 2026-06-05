@@ -7,49 +7,58 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# 1. รายชื่อหุ้นที่ต้องการสแกน (ใส่หุ้น SET50 เบื้องต้น)
+# 1. รายชื่อหุ้น SET50 (ยกตัวอย่างมาบางส่วน)
 tickers = ['PTT.BK', 'AOT.BK', 'CPALL.BK', 'BDMS.BK', 'ADVANC.BK', 'GULF.BK', 'DELTA.BK', 'SCC.BK', 'KBANK.BK', 'SCB.BK']
 
 end_date = datetime.date.today()
-start_date = end_date - datetime.timedelta(days=150)
+start_date = end_date - datetime.timedelta(days=100)
 
 results = []
+
+print("กำลังใช้คณิตศาสตร์ถอดรหัสแท่งเทียน...")
 
 for ticker in tickers:
     try:
         df = yf.download(ticker, start=start_date, end=end_date, progress=False)
-        if len(df) < 50: continue
+        if len(df) < 20: continue
             
-        # คำนวณ Indicators
-        df['EMA_50'] = ta.ema(df['Close'], length=50)
-        df['RSI_14'] = ta.rsi(df['Close'], length=14)
-        df['Vol_MA_20'] = ta.sma(df['Volume'], length=20)
-        df.dropna(inplace=True)
+        # 2. ให้ pandas_ta สแกนหาแพทเทิร์นแท่งเทียน
+        # คืนค่าออกมาเป็นตารางที่มีค่า 100 (ถ้าเจอขาขึ้น), -100 (ถ้าเจอขาลง), หรือ 0 (ถ้าไม่เจอ)
+        hammer = df.ta.cdl_pattern(name="hammer")
+        engulfing = df.ta.cdl_pattern(name="engulfing")
         
-        latest = df.iloc[-1]
+        # ดึงข้อมูลแถวล่าสุด (ราคาปิดของวันนี้) มาเช็ก
+        latest_close = df['Close'].iloc[-1]
         
-        # กรองข้อมูลเบื้องต้น (เอาตัวที่ RSI > 50 และราคายืนเหนือ EMA50)
-        if latest['Close'] > latest['EMA_50'] and latest['RSI_14'] > 50:
+        # ตรวจสอบว่ามีค่า 100 ในคอลัมน์ของวันล่าสุดหรือไม่
+        latest_hammer = hammer.iloc[-1, 0] if (hammer is not None and not hammer.empty) else 0
+        latest_engulfing = engulfing.iloc[-1, 0] if (engulfing is not None and not engulfing.empty) else 0
+        
+        is_hammer = (latest_hammer == 100)
+        is_engulfing = (latest_engulfing == 100)
+        
+        # 3. ถ้าเจอแพทเทิร์นใดแพทเทิร์นหนึ่ง ให้บันทึกลงระบบ
+        if is_hammer or is_engulfing:
+            pattern_name = []
+            if is_hammer: pattern_name.append("Hammer 🔨")
+            if is_engulfing: pattern_name.append("Bullish Engulfing 📈")
+            
             results.append({
                 "ticker": ticker.replace('.BK', ''),
-                "close": round(float(latest['Close']), 2),
-                "rsi": round(float(latest['RSI_14']), 2),
-                "volume": int(latest['Volume']),
-                "vol_ratio": round(float(latest['Volume'] / latest['Vol_MA_20']), 2)
+                "close": round(float(latest_close), 2),
+                "pattern": " + ".join(pattern_name)
             })
-    except Exception:
+            
+    except Exception as e:
         pass
 
-# เรียงลำดับจากวอลุ่มพุ่งมากไปน้อย
-results = sorted(results, key=lambda x: x['vol_ratio'], reverse=True)
-
-# 2. บันทึกผลลัพธ์ลงไฟล์ data.json
+# 4. บันทึกผลลัพธ์ลงไฟล์ data.json
 output = {
     "last_updated": end_date.strftime("%Y-%m-%d %H:%M:%S"),
     "data": results
 }
 
-with open('data.json', 'w') as f:
-    json.dump(output, f, indent=4)
+with open('data.json', 'w', encoding='utf-8') as f:
+    json.dump(output, f, indent=4, ensure_ascii=False)
 
 print("สแกนและบันทึกไฟล์ data.json สำเร็จ!")
