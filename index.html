@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสแกนหุ้นไทยส่วนตัว</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; }
+        p.update-time { text-align: center; color: #888; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>เรดาร์สแกนหุ้น SET50 (EMA50 + RSI>50)</h2>
+    <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
+    
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>ชื่อหุ้น</th>
+                <th>ราคาปิด</th>
+                <th>RSI (14)</th>
+                <th>วอลุ่มพุ่ง (เท่า)</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // ใช้ Fetch API วิ่งไปอ่านไฟล์ data.json ที่ Python สร้างไว้
+    fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
+            
+            const tbody = document.querySelector('#stockTable tbody');
+            tbody.innerHTML = ''; 
+            
+            if(data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">ตลาดซึมจัด... ไม่มีหุ้นผ่านเกณฑ์เลยวันนี้</td></tr>';
+                return;
+            }
+
+            data.data.forEach(stock => {
+                const row = `<tr>
+                    <td><b>${stock.ticker}</b></td>
+                    <td>${stock.close}</td>
+                    <td>${stock.rsi}</td>
+                    <td>${stock.vol_ratio}x</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        })
+        .catch(error => {
+            document.getElementById('timestamp').innerText = 'ไม่พบข้อมูล กรุณารอระบบรันครั้งแรกเวลา 17:00 น.';
+        });
+</script>
+
+</body>
+</html>
