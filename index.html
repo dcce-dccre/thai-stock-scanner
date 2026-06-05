@@ -11,14 +11,14 @@
         p.update-time { text-align: center; color: #888; font-size: 0.9em; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background-color: #007bff; color: white; }
+        th { background-color: #28a745; color: white; }
         tr:hover { background-color: #f1f1f1; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>เรดาร์สแกนหุ้น SET50 (EMA50 + RSI>50)</h2>
+    <h2>เรดาร์จับสัญญาณแท่งเทียนกลับตัว 🕯️</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <table id="stockTable">
@@ -26,8 +26,7 @@
             <tr>
                 <th>ชื่อหุ้น</th>
                 <th>ราคาปิด</th>
-                <th>RSI (14)</th>
-                <th>วอลุ่มพุ่ง (เท่า)</th>
+                <th>แพทเทิร์นที่พบ (Candlestick)</th>
             </tr>
         </thead>
         <tbody>
@@ -36,7 +35,6 @@
 </div>
 
 <script>
-    // ใช้ Fetch API วิ่งไปอ่านไฟล์ data.json ที่ Python สร้างไว้
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
@@ -46,7 +44,7 @@
             tbody.innerHTML = ''; 
             
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4">ตลาดซึมจัด... ไม่มีหุ้นผ่านเกณฑ์เลยวันนี้</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3">วันนี้ไม่มีหุ้นตัวไหนเกิดแท่งเทียนกลับตัวเลยครับ... ซึมต่อไป</td></tr>';
                 return;
             }
 
@@ -54,14 +52,13 @@
                 const row = `<tr>
                     <td><b>${stock.ticker}</b></td>
                     <td>${stock.close}</td>
-                    <td>${stock.rsi}</td>
-                    <td>${stock.vol_ratio}x</td>
+                    <td style="color: #d32f2f; font-weight: bold;">${stock.pattern}</td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
         })
         .catch(error => {
-            document.getElementById('timestamp').innerText = 'ไม่พบข้อมูล กรุณารอระบบรันครั้งแรกเวลา 17:00 น.';
+            document.getElementById('timestamp').innerText = 'ไม่พบข้อมูล กรุณารอระบบรันครับ';
         });
 </script>
 
