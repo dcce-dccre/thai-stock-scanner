@@ -1,13 +1,12 @@
 import pandas as pd
 import yfinance as yf
-import numpy as np
 import datetime
 import json
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# 1. รายชื่อหุ้น SET100
+# รายชื่อหุ้น SET100
 tickers = [
     'AAV.BK', 'ADVANC.BK', 'AMATA.BK', 'AOT.BK', 'AP.BK', 'AWC.BK', 'BAM.BK', 'BANPU.BK', 
     'BBL.BK', 'BCH.BK', 'BCP.BK', 'BCPG.BK', 'BDMS.BK', 'BEM.BK', 'BGRIM.BK', 'BH.BK', 
@@ -24,20 +23,20 @@ tickers = [
     'TRUE.BK', 'TTB.BK', 'TU.BK', 'VGI.BK', 'WHA.BK', 'WHAUP.BK'
 ]
 
-# โหลดข้อมูลดัชนี SET เป็นตัวตั้งต้น
 end_date = datetime.date.today()
-start_date = end_date - datetime.timedelta(days=200)
+# ดึงข้อมูลย้อนหลังไปเผื่อไว้ เพื่อให้ได้วันทำการครบ 60 วัน (ประมาณ 3 เดือน)
+start_date = end_date - datetime.timedelta(days=120)
 
-print("ดาวน์โหลดดัชนี SET เพื่อคำนวณความแข็งแกร่งเปรียบเทียบ...")
+print("ดาวน์โหลดข้อมูล Benchmark (SET Index)...")
 try:
     set_df = yf.download('^SET.BK', start=start_date, end=end_date, progress=False)
-    # คำนวณผลตอบแทนสะสม 3 เดือน (ประมาณ 60 วันทำการ) ของ SET
-    set_return = (set_df['Close'].iloc[-1] / set_df['Close'].iloc[-60]) - 1
+    # หาผลตอบแทนดัชนี SET ในรอบ 60 วันทำการ
+    set_return = (float(set_df['Close'].iloc[-1]) / float(set_df['Close'].iloc[-60])) - 1
 except:
-    set_return = 0
+    set_return = 0.0
 
-results = []
-print("สแกนหาผู้แข็งแกร่ง (Relative Strength) และกราฟบีบตัว (VCP)...")
+all_stocks = []
+print("กำลังคำนวณความแข็งแกร่ง (RS Score) ของหุ้นทั้ง 100 ตัว...")
 
 for ticker in tickers:
     try:
@@ -45,47 +44,38 @@ for ticker in tickers:
         if len(df) < 60: continue
         
         latest_close = float(df['Close'].iloc[-1])
+        past_close = float(df['Close'].iloc[-60])
         
-        # 1. คำนวณ Relative Strength (ผลตอบแทนชนะตลาดในรอบ 3 เดือน)
-        stock_return = (latest_close / float(df['Close'].iloc[-60])) - 1
-        rs_score = stock_return - float(set_return) # ส่วนต่างที่ชนะตลาด (ยิ่งบวกเยอะยิ่งดี)
+        # 1. คำนวณผลตอบแทนของหุ้นตัวนี้
+        stock_return = (latest_close / past_close) - 1
         
-        # 2. คำนวณ VCP (Volatility Contraction) 
-        # หาความแกว่งของราคาย้อนหลัง 20 วัน เทียบกับ 60 วัน (ถ้า 20 วันล่าสุดกราฟแกว่งน้อยลง แปลว่ากำลังบีบตัว)
-        std_60 = df['Close'].tail(60).std()
-        std_20 = df['Close'].tail(20).std()
+        # 2. คำนวณ RS Score (ผลตอบแทนหุ้น ลบด้วย ผลตอบแทนดัชนี)
+        # ถ้าคะแนนเป็นบวก แปลว่าแข็งแกร่งกว่าตลาด
+        rs_score = stock_return - set_return
         
-        # 3. เงื่อนไขขั้นเทพ: 
-        # - ต้องชนะตลาด (RS Score > 0.05 คือชนะ SET อย่างน้อย 5%)
-        # - กราฟต้องบีบตัวแคบลง (ความผันผวน 20 วันล่าสุด น้อยกว่าครึ่งหนึ่งของ 60 วัน)
-        # - ราคาต้องยืนเหนือเส้น EMA 50
-        
-        df['EMA_50'] = df['Close'].ewm(span=50, adjust=False).mean()
-        is_above_ema50 = latest_close > df['EMA_50'].iloc[-1]
-        
-        is_stronger_than_market = rs_score > 0.05
-        is_contracting = std_20 < (std_60 * 0.6)
-        
-        if is_above_ema50 and is_stronger_than_market and is_contracting:
-            results.append({
-                "ticker": ticker.replace('.BK', ''),
-                "close": round(latest_close, 2),
-                "rs_outperform": f"+{round(rs_score * 100, 2)}%",
-                "vcp_status": "กำลังบีบตัว 💥"
-            })
+        all_stocks.append({
+            "ticker": ticker.replace('.BK', ''),
+            "close": round(latest_close, 2),
+            "return_3m": round(stock_return * 100, 2),
+            "rs_score": round(rs_score * 100, 2)
+        })
             
     except Exception as e:
         pass
 
-# เรียงลำดับจากตัวที่ชนะตลาดมากที่สุด
-results = sorted(results, key=lambda x: float(x['rs_outperform'].replace('+','').replace('%','')), reverse=True)
+# 3. เรียงลำดับหุ้นจากตัวที่ RS Score สูงสุดไปต่ำสุด
+sorted_stocks = sorted(all_stocks, key=lambda x: x['rs_score'], reverse=True)
+
+# 4. ตัดเอาเฉพาะ 10 อันดับแรก (Top 10)
+top_10_stocks = sorted_stocks[:10]
 
 output = {
     "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "data": results
+    "set_return_3m": round(set_return * 100, 2),
+    "data": top_10_stocks
 }
 
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False)
 
-print("อัปเดตระบบ RS + VCP สำเร็จ!")
+print("จัดอันดับ Top 10 หุ้นแกร่งสำเร็จ!")
