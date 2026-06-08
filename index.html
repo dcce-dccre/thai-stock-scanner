@@ -3,137 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Quant Dashboard V7 (Full System)</title>
+    <title>Ultimate Quant Dashboard V7 (Mobile Friendly)</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; }
-        p.update-time { text-align: center; color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 10px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 1.5em; }
+        p.update-time { text-align: center; color: #94a3b8; font-size: 0.85em; margin-bottom: 15px; }
         
         .card { background: #334155; padding: 15px; border-radius: 8px; border: 1px solid #475569; margin-bottom: 15px; }
-        .card label { font-weight: bold; color: #38bdf8; display: block; margin-bottom: 8px; }
-        .card input { width: 100%; max-width: 200px; padding: 8px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 4px; font-size: 1.1em; text-align: center; }
+        .card label { font-weight: bold; color: #38bdf8; display: block; margin-bottom: 8px; font-size: 0.9em; }
+        .card input { width: 100%; max-width: 100%; box-sizing: border-box; padding: 10px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 4px; font-size: 1.1em; text-align: center; }
+        .hint-text { font-size: 0.8em; color: #94a3b8; display: block; margin-top: 8px; text-align: center; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95em; }
-        th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #334155; }
-        th { background-color: #0ea5e9; color: white; }
+        /* สร้างกล่องครอบตารางเพื่อทำให้เลื่อนซ้ายขวาได้ในมือถือ */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 800px; /* บังคับความกว้างขั้นต่ำไม่ให้ตารางหดเละ */ font-size: 0.9em; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #334155; white-space: nowrap; }
+        th { background-color: #0ea5e9; color: white; position: sticky; top: 0; }
         tr:hover { background-color: #273549; }
         
-        .rank-1 { color: #fbbf24; font-weight: bold; }
-        .rank-2 { color: #cbd5e1; font-weight: bold; }
-        .rank-3 { color: #b45309; font-weight: bold; }
+        .rank-1 { color: #fbbf24; font-weight: bold; font-size: 1.1em;}
+        .rank-2 { color: #cbd5e1; font-weight: bold; font-size: 1.1em;}
+        .rank-3 { color: #b45309; font-weight: bold; font-size: 1.1em;}
         .positive { color: #4ade80; font-weight: bold; }
+        .negative { color: #f87171; font-weight: bold; }
         
-        .badge-green { background: #16a34a; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
-        .badge-red { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+        .badge-green { background: #16a34a; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
+        .badge-red { background: #dc2626; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
         
-        /* กล่องหนีตาย สีแดง */
         .sl-box { background: #451a03; color: #f97316; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #7c2d12; }
-        /* กล่องเป้าขาย สีเขียว */
         .tp-box { background: #064e3b; color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #065f46; }
-        /* กล่องจำนวนหุ้น สีน้ำเงิน */
         .calc-stock { background: #1e3a8a; color: #60a5fa; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+
+        /* ปรับแต่งพิเศษสำหรับหน้าจอมือถือ (จอเล็กกว่า 768px) */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .container { padding: 10px; }
+            .card input { font-size: 1em; padding: 8px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🏆 The Ultimate Quant Dashboard V7 🏆</h2>
+    <h2>🏆 Ultimate Quant Dashboard 🏆</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
-    <div class="card" id="setStatus">ภาพรวมดัชนี SET (3 เดือนล่าสุด): กำลังโหลดข้อมูล...</div>
-    
-    <div class="card">
-        <label for="riskInput">💰 กำหนดเงินที่ "ยอมขาดทุนสูงสุด" ต่อไม้ (บาท):</label>
-        <input type="number" id="riskInput" value="2000" oninput="calculatePositions()">
-        <span style="font-size: 0.85em; color: #94a3b8; margin-left: 10px;">*ตั้งงบปุ๊บ ระบบจะบอกจำนวนหุ้นที่ต้องซื้อให้ทันที</span>
-    </div>
-    
-    <table id="stockTable">
-        <thead>
-            <tr>
-                <th>อันดับ</th>
-                <th>หุ้น</th>
-                <th>เข้าซื้อ (ราคาปิด)</th>
-                <th>RS Score</th>
-                <th>เทรนด์</th>
-                <th>จุดหนี (SL)</th>
-                <th>เป้าขาย (TP)</th>
-                <th>ควรซื้อ (หุ้น)</th>
-                <th>ใช้เงินทุน (บาท)</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
-</div>
-
-<script>
-    let currentData = [];
-
-    fetch('data.json')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
-            
-            const setRet = data.set_return_3m;
-            const setClass = setRet >= 0 ? 'positive' : 'negative';
-            const setSign = setRet > 0 ? '+' : '';
-            document.getElementById('setStatus').innerHTML = `ภาพรวมดัชนี SET (3 เดือนล่าสุด): <span class="${setClass}">${setSign}${setRet}%</span>`;
-            
-            currentData = data.data;
-            calculatePositions();
-        })
-        .catch(error => {
-            document.getElementById('timestamp').innerText = 'ไม่พบข้อมูล กรุณารอระบบรันครับ';
-        });
-
-    function calculatePositions() {
-        const riskAmount = parseFloat(document.getElementById('riskInput').value) || 0;
-        const tbody = document.querySelector('#stockTable tbody');
-        tbody.innerHTML = '';
-        
-        if (currentData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9">ไม่มีข้อมูลหุ้น</td></tr>';
-            return;
-        }
-
-        currentData.forEach((stock, index) => {
-            const rank = index + 1;
-            let rankHtml = `<b>${rank}</b>`;
-            if(rank === 1) rankHtml = `<span class="rank-1">👑 1</span>`;
-            if(rank === 2) rankHtml = `<span class="rank-2">🥈 2</span>`;
-            if(rank === 3) rankHtml = `<span class="rank-3">🥉 3</span>`;
-
-            // คำนวณขนาดไม้ลงทุน
-            const riskPerShare = stock.close - stock.stop_loss;
-            let sharesToBuy = 0;
-            let totalCapital = 0;
-            
-            if (riskPerShare > 0 && riskAmount > 0) {
-                sharesToBuy = Math.floor(riskAmount / riskPerShare);
-                sharesToBuy = Math.floor(sharesToBuy / 100) * 100; // ปัดเศษเป็นหลักร้อย
-                totalCapital = sharesToBuy * stock.close;
-            }
-
-            const trendBadge = stock.trend === "ขาขึ้น 🟢" ? '<span class="badge-green">ขึ้น 🟢</span>' : '<span class="badge-red">ลง 🔴</span>';
-            const rsSign = stock.rs_score > 0 ? '+' : '';
-
-            const row = `<tr>
-                <td>${rankHtml}</td>
-                <td style="font-size: 1.1em;"><b>${stock.ticker}</b></td>
-                <td><b>${stock.close.toFixed(2)}</b></td>
-                <td><span class="positive">${rsSign}${stock.rs_score}%</span></td>
-                <td>${trendBadge}</td>
-                <td><span class="sl-box">${stock.stop_loss.toFixed(2)}</span></td>
-                <td><span class="tp-box">${stock.take_profit.toFixed(2)}</span></td>
-                <td><span class="calc-stock">${sharesToBuy.toLocaleString()}</span></td>
-                <td><b>${totalCapital.toLocaleString()}</b></td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
-    }
-</script>
-
-</body>
-</html>
+    <div class="card" id="setStatus" style="text-align: center; font
