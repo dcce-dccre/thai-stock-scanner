@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Quant Dashboard V6</title>
+    <title>Ultimate Quant Dashboard V7 (Full System)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .container { max-width: 1200px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; }
         p.update-time { text-align: center; color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
         
-        .dashboard-grid { display: block; margin-bottom: 20px; }
         .card { background: #334155; padding: 15px; border-radius: 8px; border: 1px solid #475569; margin-bottom: 15px; }
         .card label { font-weight: bold; color: #38bdf8; display: block; margin-bottom: 8px; }
         .card input { width: 100%; max-width: 200px; padding: 8px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 4px; font-size: 1.1em; text-align: center; }
@@ -18,44 +17,48 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95em; }
         th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #334155; }
         th { background-color: #0ea5e9; color: white; }
-        tr:hover { background-color: #334155; }
+        tr:hover { background-color: #273549; }
         
         .rank-1 { color: #fbbf24; font-weight: bold; }
         .rank-2 { color: #cbd5e1; font-weight: bold; }
         .rank-3 { color: #b45309; font-weight: bold; }
         .positive { color: #4ade80; font-weight: bold; }
-        .negative { color: #f87171; font-weight: bold; }
         
         .badge-green { background: #16a34a; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
         .badge-red { background: #dc2626; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
-        .sl-box { background: #451a03; color: #f97316; padding: 3px 6px; border-radius: 4px; font-weight: bold; border: 1px solid #7c2d12; }
+        
+        /* กล่องหนีตาย สีแดง */
+        .sl-box { background: #451a03; color: #f97316; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #7c2d12; }
+        /* กล่องเป้าขาย สีเขียว */
+        .tp-box { background: #064e3b; color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #065f46; }
+        /* กล่องจำนวนหุ้น สีน้ำเงิน */
         .calc-stock { background: #1e3a8a; color: #60a5fa; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🏆 Ultimate Quant Dashboard V6 🏆</h2>
+    <h2>🏆 The Ultimate Quant Dashboard V7 🏆</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <div class="card" id="setStatus">ภาพรวมดัชนี SET (3 เดือนล่าสุด): กำลังโหลดข้อมูล...</div>
     
     <div class="card">
-        <label for="riskInput">💰 ใส่จำนวนเงินที่คุณ "ยอมขาดทุนสูงสุด" ต่อ 1 ไม้ (บาท):</label>
+        <label for="riskInput">💰 กำหนดเงินที่ "ยอมขาดทุนสูงสุด" ต่อไม้ (บาท):</label>
         <input type="number" id="riskInput" value="2000" oninput="calculatePositions()">
-        <span style="font-size: 0.85em; color: #94a3b8; margin-left: 10px;">*ระบบจะคำนวณจำนวนหุ้นที่ควรซื้อให้ทันทีตามจุดหนีตายทางสถิติ</span>
+        <span style="font-size: 0.85em; color: #94a3b8; margin-left: 10px;">*ตั้งงบปุ๊บ ระบบจะบอกจำนวนหุ้นที่ต้องซื้อให้ทันที</span>
     </div>
     
     <table id="stockTable">
         <thead>
             <tr>
                 <th>อันดับ</th>
-                <th>ชื่อหุ้น</th>
-                <th>ราคาปิด</th>
+                <th>หุ้น</th>
+                <th>เข้าซื้อ (ราคาปิด)</th>
                 <th>RS Score</th>
-                <th>พลังวอลุ่ม (เท่า)</th>
-                <th>เทรนด์หลัก</th>
+                <th>เทรนด์</th>
                 <th>จุดหนี (SL)</th>
+                <th>เป้าขาย (TP)</th>
                 <th>ควรซื้อ (หุ้น)</th>
                 <th>ใช้เงินทุน (บาท)</th>
             </tr>
@@ -102,30 +105,28 @@
             if(rank === 2) rankHtml = `<span class="rank-2">🥈 2</span>`;
             if(rank === 3) rankHtml = `<span class="rank-3">🥉 3</span>`;
 
-            // คำนวณขนาดไม้ลงทุนแบบ Dynamic
+            // คำนวณขนาดไม้ลงทุน
             const riskPerShare = stock.close - stock.stop_loss;
             let sharesToBuy = 0;
             let totalCapital = 0;
             
             if (riskPerShare > 0 && riskAmount > 0) {
                 sharesToBuy = Math.floor(riskAmount / riskPerShare);
-                // ปัดเศษให้เป็นจำนวนร้อยหุ้นตามกฎกระดานหลักตลาดไทย
-                sharesToBuy = Math.floor(sharesToBuy / 100) * 100;
+                sharesToBuy = Math.floor(sharesToBuy / 100) * 100; // ปัดเศษเป็นหลักร้อย
                 totalCapital = sharesToBuy * stock.close;
             }
 
-            const trendBadge = stock.trend === "ขาขึ้น 🟢" ? '<span class="badge-green">ขาขึ้น 🟢</span>' : '<span class="badge-red">ขาลง 🔴</span>';
-            const volClass = stock.vol_ratio >= 1.5 ? 'positive' : '';
+            const trendBadge = stock.trend === "ขาขึ้น 🟢" ? '<span class="badge-green">ขึ้น 🟢</span>' : '<span class="badge-red">ลง 🔴</span>';
             const rsSign = stock.rs_score > 0 ? '+' : '';
 
             const row = `<tr>
                 <td>${rankHtml}</td>
-                <td><b>${stock.ticker}</b></td>
-                <td>${stock.close.toFixed(2)}</td>
+                <td style="font-size: 1.1em;"><b>${stock.ticker}</b></td>
+                <td><b>${stock.close.toFixed(2)}</b></td>
                 <td><span class="positive">${rsSign}${stock.rs_score}%</span></td>
-                <td class="${volClass}"><b>${stock.vol_ratio}x</b></td>
                 <td>${trendBadge}</td>
                 <td><span class="sl-box">${stock.stop_loss.toFixed(2)}</span></td>
+                <td><span class="tp-box">${stock.take_profit.toFixed(2)}</span></td>
                 <td><span class="calc-stock">${sharesToBuy.toLocaleString()}</span></td>
                 <td><b>${totalCapital.toLocaleString()}</b></td>
             </tr>`;
