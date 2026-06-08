@@ -1,56 +1,84 @@
 import pandas as pd
 import yfinance as yf
+import numpy as np
 import datetime
 import json
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# รายชื่อหุ้นกลุ่มธนาคาร พลังงาน และหุ้นปันผลเด่นใน SET100
+# 1. รายชื่อหุ้น SET100
 tickers = [
-    'BBL.BK', 'SCB.BK', 'KTB.BK', 'TTB.BK', 'TISCO.BK', 
-    'PTT.BK', 'PTTEP.BK', 'TOP.BK', 'BCP.BK', 'BANPU.BK',
-    'EGCO.BK', 'RATCH.BK', 'INTUCH.BK', 'ADVANC.BK', 'CPALL.BK',
-    'LH.BK', 'SIRI.BK', 'AP.BK', 'WHA.BK', 'TU.BK'
+    'AAV.BK', 'ADVANC.BK', 'AMATA.BK', 'AOT.BK', 'AP.BK', 'AWC.BK', 'BAM.BK', 'BANPU.BK', 
+    'BBL.BK', 'BCH.BK', 'BCP.BK', 'BCPG.BK', 'BDMS.BK', 'BEM.BK', 'BGRIM.BK', 'BH.BK', 
+    'BJC.BK', 'BLA.BK', 'BPP.BK', 'BTS.BK', 'CBG.BK', 'CENTEL.BK', 'CHG.BK', 'CK.BK', 
+    'CKP.BK', 'COM7.BK', 'CPALL.BK', 'CPAXT.BK', 'CPF.BK', 'CPN.BK', 'CRC.BK', 'DELTA.BK', 
+    'DOHOME.BK', 'EA.BK', 'EGCO.BK', 'EPG.BK', 'ERW.BK', 'GLOBAL.BK', 'GPSC.BK', 'GULF.BK', 
+    'GUNKUL.BK', 'HANA.BK', 'HMPRO.BK', 'ICHI.BK', 'INTUCH.BK', 'IRPC.BK', 'ITC.BK', 
+    'IVL.BK', 'JMART.BK', 'JMT.BK', 'KBANK.BK', 'KCE.BK', 'KEX.BK', 'KKP.BK', 'KTB.BK', 
+    'KTC.BK', 'LH.BK', 'MEGA.BK', 'MINT.BK', 'MTC.BK', 'OR.BK', 'ORI.BK', 'OSP.BK', 
+    'PLANB.BK', 'PRM.BK', 'PSL.BK', 'PTG.BK', 'PTT.BK', 'PTTEP.BK', 'PTTGC.BK', 'QH.BK', 
+    'RATCH.BK', 'RBF.BK', 'RCL.BK', 'RS.BK', 'SAWAD.BK', 'SCB.BK', 'SCC.BK', 'SCGP.BK', 
+    'SIRI.BK', 'SJWD.BK', 'SPALI.BK', 'SPRC.BK', 'STA.BK', 'STEC.BK', 'STGT.BK', 'TCAP.BK', 
+    'THANI.BK', 'THCOM.BK', 'THG.BK', 'TIDLOR.BK', 'TIPH.BK', 'TISCO.BK', 'TOP.BK', 
+    'TRUE.BK', 'TTB.BK', 'TU.BK', 'VGI.BK', 'WHA.BK', 'WHAUP.BK'
 ]
 
+# โหลดข้อมูลดัชนี SET เป็นตัวตั้งต้น
+end_date = datetime.date.today()
+start_date = end_date - datetime.timedelta(days=200)
+
+print("ดาวน์โหลดดัชนี SET เพื่อคำนวณความแข็งแกร่งเปรียบเทียบ...")
+try:
+    set_df = yf.download('^SET.BK', start=start_date, end=end_date, progress=False)
+    # คำนวณผลตอบแทนสะสม 3 เดือน (ประมาณ 60 วันทำการ) ของ SET
+    set_return = (set_df['Close'].iloc[-1] / set_df['Close'].iloc[-60]) - 1
+except:
+    set_return = 0
+
 results = []
-print("กำลังสแกนหาหุ้นคุณค่า (Value Stock) ตามเกณฑ์ Benjamin Graham...")
+print("สแกนหาผู้แข็งแกร่ง (Relative Strength) และกราฟบีบตัว (VCP)...")
 
 for ticker in tickers:
     try:
-        stock = yf.Ticker(ticker)
-        info = stock.info
+        df = yf.download(ticker, start=start_date, end=end_date, progress=False)
+        if len(df) < 60: continue
         
-        current_price = info.get('currentPrice', info.get('previousClose', 0))
-        pe_ratio = info.get('trailingPE', 0)
-        pbv_ratio = info.get('priceToBook', 0)
-        div_yield = info.get('dividendYield', 0)
+        latest_close = float(df['Close'].iloc[-1])
         
-        if not current_price:
-            continue
-            
-        div_yield_percent = div_yield * 100 if div_yield else 0
+        # 1. คำนวณ Relative Strength (ผลตอบแทนชนะตลาดในรอบ 3 เดือน)
+        stock_return = (latest_close / float(df['Close'].iloc[-60])) - 1
+        rs_score = stock_return - float(set_return) # ส่วนต่างที่ชนะตลาด (ยิ่งบวกเยอะยิ่งดี)
         
-        # --- กฎเหล็ก VI คลาสสิก ---
-        # 1. P/E ต้องมากกว่า 0 และน้อยกว่า 15 เท่า (คืนทุนไว)
-        # 2. P/BV ต้องมากกว่า 0 และน้อยกว่า 1.5 เท่า (ราคาถูกเมื่อเทียบกับสินทรัพย์)
-        # 3. ปันผลมากกว่า 4% ต่อปี (มีกระแสเงินสดปลอบใจ)
+        # 2. คำนวณ VCP (Volatility Contraction) 
+        # หาความแกว่งของราคาย้อนหลัง 20 วัน เทียบกับ 60 วัน (ถ้า 20 วันล่าสุดกราฟแกว่งน้อยลง แปลว่ากำลังบีบตัว)
+        std_60 = df['Close'].tail(60).std()
+        std_20 = df['Close'].tail(20).std()
         
-        if (0 < pe_ratio <= 15.0) and (0 < pbv_ratio <= 1.5) and (div_yield_percent >= 4.0):
+        # 3. เงื่อนไขขั้นเทพ: 
+        # - ต้องชนะตลาด (RS Score > 0.05 คือชนะ SET อย่างน้อย 5%)
+        # - กราฟต้องบีบตัวแคบลง (ความผันผวน 20 วันล่าสุด น้อยกว่าครึ่งหนึ่งของ 60 วัน)
+        # - ราคาต้องยืนเหนือเส้น EMA 50
+        
+        df['EMA_50'] = df['Close'].ewm(span=50, adjust=False).mean()
+        is_above_ema50 = latest_close > df['EMA_50'].iloc[-1]
+        
+        is_stronger_than_market = rs_score > 0.05
+        is_contracting = std_20 < (std_60 * 0.6)
+        
+        if is_above_ema50 and is_stronger_than_market and is_contracting:
             results.append({
                 "ticker": ticker.replace('.BK', ''),
-                "price": round(current_price, 2),
-                "pe": round(pe_ratio, 2),
-                "pbv": round(pbv_ratio, 2),
-                "dividend": round(div_yield_percent, 2)
+                "close": round(latest_close, 2),
+                "rs_outperform": f"+{round(rs_score * 100, 2)}%",
+                "vcp_status": "กำลังบีบตัว 💥"
             })
             
     except Exception as e:
         pass
 
-# เรียงลำดับตามความถูกของสินทรัพย์ (P/BV จากต่ำไปสูง)
-results = sorted(results, key=lambda x: x['pbv'])
+# เรียงลำดับจากตัวที่ชนะตลาดมากที่สุด
+results = sorted(results, key=lambda x: float(x['rs_outperform'].replace('+','').replace('%','')), reverse=True)
 
 output = {
     "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -60,4 +88,4 @@ output = {
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False)
 
-print("อัปเดตฐานข้อมูลหุ้นคุณค่าสำเร็จ!")
+print("อัปเดตระบบ RS + VCP สำเร็จ!")
