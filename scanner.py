@@ -6,7 +6,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# รายชื่อหุ้น SET100
+# 1. รายชื่อหุ้น SET100
 tickers = [
     'AAV.BK', 'ADVANC.BK', 'AMATA.BK', 'AOT.BK', 'AP.BK', 'AWC.BK', 'BAM.BK', 'BANPU.BK', 
     'BBL.BK', 'BCH.BK', 'BCP.BK', 'BCPG.BK', 'BDMS.BK', 'BEM.BK', 'BGRIM.BK', 'BH.BK', 
@@ -24,33 +24,47 @@ tickers = [
 ]
 
 end_date = datetime.date.today()
-# ดึงข้อมูลย้อนหลังไปเผื่อไว้ เพื่อให้ได้วันทำการครบ 60 วัน (ประมาณ 3 เดือน)
 start_date = end_date - datetime.timedelta(days=120)
 
 print("ดาวน์โหลดข้อมูล Benchmark (SET Index)...")
 try:
     set_df = yf.download('^SET.BK', start=start_date, end=end_date, progress=False)
-    # หาผลตอบแทนดัชนี SET ในรอบ 60 วันทำการ
     set_return = (float(set_df['Close'].iloc[-1]) / float(set_df['Close'].iloc[-60])) - 1
 except:
     set_return = 0.0
 
+print("โหลดข้อมูลหุ้น SET100 รวดเดียว 100 ตัว (Batch Download) ป้องกันการโดนบล็อก...")
+# ท่าไม้ตาย: ส่งรายชื่อทั้งหมดไปโหลดรวดเดียว
+df = yf.download(tickers, start=start_date, end=end_date, progress=False)
+
 all_stocks = []
-print("กำลังคำนวณความแข็งแกร่ง (RS Score) ของหุ้นทั้ง 100 ตัว...")
+
+# ดึงเฉพาะคอลัมน์ราคาปิด (Close) ของทุกตัวมาใช้งาน
+if 'Close' in df.columns:
+    close_data = df['Close']
+else:
+    close_data = df
+
+print("กำลังคำนวณและจัดอันดับ RS Score...")
 
 for ticker in tickers:
     try:
-        df = yf.download(ticker, start=start_date, end=end_date, progress=False)
-        if len(df) < 60: continue
+        # ตรวจสอบว่าดึงข้อมูลตัวนี้มาได้สำเร็จหรือไม่
+        if ticker not in close_data.columns:
+            continue
+            
+        # ดึงราคาปิดของหุ้นตัวนั้น และลบค่าที่ว่าง (NaN) ออก
+        stock_close = close_data[ticker].dropna()
         
-        latest_close = float(df['Close'].iloc[-1])
-        past_close = float(df['Close'].iloc[-60])
+        # ต้องมีวันทำการอย่างน้อย 60 วัน ถึงจะคำนวณได้
+        if len(stock_close) < 60:
+            continue
+            
+        latest_close = float(stock_close.iloc[-1])
+        past_close = float(stock_close.iloc[-60])
         
-        # 1. คำนวณผลตอบแทนของหุ้นตัวนี้
+        # คำนวณผลตอบแทนและเปรียบเทียบกับตลาด
         stock_return = (latest_close / past_close) - 1
-        
-        # 2. คำนวณ RS Score (ผลตอบแทนหุ้น ลบด้วย ผลตอบแทนดัชนี)
-        # ถ้าคะแนนเป็นบวก แปลว่าแข็งแกร่งกว่าตลาด
         rs_score = stock_return - set_return
         
         all_stocks.append({
@@ -59,16 +73,15 @@ for ticker in tickers:
             "return_3m": round(stock_return * 100, 2),
             "rs_score": round(rs_score * 100, 2)
         })
-            
+        
     except Exception as e:
-        pass
+        print(f"ข้ามหุ้น {ticker} เนื่องจากข้อมูลไม่สมบูรณ์")
 
-# 3. เรียงลำดับหุ้นจากตัวที่ RS Score สูงสุดไปต่ำสุด
+# เรียงลำดับและคัดเฉพาะ Top 10
 sorted_stocks = sorted(all_stocks, key=lambda x: x['rs_score'], reverse=True)
-
-# 4. ตัดเอาเฉพาะ 10 อันดับแรก (Top 10)
 top_10_stocks = sorted_stocks[:10]
 
+# สร้างไฟล์ JSON ให้หน้าเว็บไปแสดงผล
 output = {
     "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "set_return_3m": round(set_return * 100, 2),
@@ -78,4 +91,4 @@ output = {
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False)
 
-print("จัดอันดับ Top 10 หุ้นแกร่งสำเร็จ!")
+print(f"จัดอันดับ Top 10 หุ้นแกร่งสำเร็จ! ได้หุ้นทั้งหมด {len(top_10_stocks)} ตัว")
