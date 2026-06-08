@@ -1,66 +1,66 @@
 {
-    "last_updated": "2026-06-08 04:51:43",
-    "set_return_3m": 0.0,
+    "last_updated": "2026-06-08 04:55:12",
+    "set_return_3m": 14.3,
     "data": [
         {
             "ticker": "KCE",
             "close": 36.75,
             "return_3m": 93.6,
-            "rs_score": 93.6
+            "rs_score": 79.3
         },
         {
             "ticker": "GUNKUL",
             "close": 3.98,
             "return_3m": 84.32,
-            "rs_score": 84.32
+            "rs_score": 70.02
         },
         {
             "ticker": "EPG",
             "close": 5.75,
             "return_3m": 67.15,
-            "rs_score": 67.15
+            "rs_score": 52.85
         },
         {
             "ticker": "IRPC",
             "close": 1.9,
             "return_3m": 62.39,
-            "rs_score": 62.39
+            "rs_score": 48.09
         },
         {
             "ticker": "HANA",
             "close": 36.0,
             "return_3m": 57.32,
-            "rs_score": 57.32
+            "rs_score": 43.02
         },
         {
             "ticker": "AMATA",
             "close": 26.0,
             "return_3m": 49.9,
-            "rs_score": 49.9
+            "rs_score": 35.6
         },
         {
             "ticker": "SCGP",
             "close": 26.0,
             "return_3m": 49.48,
-            "rs_score": 49.48
+            "rs_score": 35.18
         },
         {
             "ticker": "WHAUP",
             "close": 5.9,
             "return_3m": 39.79,
-            "rs_score": 39.79
+            "rs_score": 25.49
         },
         {
             "ticker": "SCC",
             "close": 234.0,
             "return_3m": 38.92,
-            "rs_score": 38.92
+            "rs_score": 24.62
         },
         {
             "ticker": "RBF",
             "close": 4.66,
             "return_3m": 34.53,
-            "rs_score": 34.53
+            "rs_score": 20.23
         }
     ]
 }
