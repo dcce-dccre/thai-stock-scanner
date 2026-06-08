@@ -44,7 +44,7 @@ except:
     set_return = 0.0
 
 all_stocks = []
-print("กำลังสแกนขั้นสูง (RS + Volume + Trend + Dynamic SL)...")
+print("กำลังสแกนขั้นสูง (RS + Volume + Trend + SL + TP)...")
 
 for ticker in tickers:
     try:
@@ -83,6 +83,10 @@ for ticker in tickers:
         if stop_loss >= latest_close:
             stop_loss = latest_close * 0.95
             
+        # 5. เป้าทำกำไร (Take Profit) สูตร Risk/Reward 1:2
+        risk_per_share = latest_close - stop_loss
+        take_profit = latest_close + (risk_per_share * 2.0)
+            
         all_stocks.append({
             "ticker": ticker.replace('.BK', ''),
             "close": round(latest_close, 2),
@@ -90,7 +94,8 @@ for ticker in tickers:
             "rs_score": round(rs_score * 100, 2),
             "vol_ratio": round(float(vol_ratio), 2),
             "trend": trend,
-            "stop_loss": round(float(stop_loss), 2)
+            "stop_loss": round(float(stop_loss), 2),
+            "take_profit": round(float(take_profit), 2)
         })
     except Exception as e:
         pass
@@ -108,4 +113,4 @@ output = {
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False)
 
-print("จัดอันดับ V6 สำเร็จเรียบร้อย!")
+print("จัดอันดับ V7 สำเร็จเรียบร้อย!")
