@@ -3,34 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เรดาร์หุ้นคุณค่าตามบัญชี (Benjamin Graham Style)</title>
+    <title>เรดาร์จับมังกรซ่อนกาย (RS + VCP)</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { color: #1a237e; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2 { color: #bb86fc; text-align: center; }
         p.update-time { text-align: center; color: #888; font-size: 0.9em; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background-color: #2e7d32; color: white; }
-        tr:hover { background-color: #f1f8e9; }
-        .pbv-badge { background-color: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #c8e6c9; }
-        .div-badge { font-weight: bold; color: #e65100; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #333; }
+        th { background-color: #3700b3; color: white; border-top-left-radius: 4px; border-top-right-radius: 4px;}
+        tr:hover { background-color: #2c2c2c; }
+        .rs-badge { background-color: #03dac6; color: #000; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .vcp-badge { color: #cf6679; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>เรดาร์สแกนหุ้นถูกและดี (P/E ต่ำ + ราคาต่ำกว่ามูลค่าบัญชี P/BV) 📈</h2>
+    <h2>เรดาร์จับมังกร (หุ้นชนะตลาด + กราฟบีบตัว) 🐉</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <table id="stockTable">
         <thead>
             <tr>
                 <th>ชื่อหุ้น</th>
-                <th>ราคาปัจจุบัน</th>
-                <th>P/E (เท่า)</th>
-                <th>P/BV (เท่า)</th>
-                <th>ปันผลปีล่าสุด</th>
+                <th>ราคาปิด</th>
+                <th>ชนะตลาด (3 เดือน)</th>
+                <th>พฤติกรรมกราฟ</th>
             </tr>
         </thead>
         <tbody>
@@ -42,23 +41,22 @@
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('timestamp').innerText = 'อัปเดตข้อมูลล่าสุด: ' + data.last_updated;
+            document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
             
             const tbody = document.querySelector('#stockTable tbody');
             tbody.innerHTML = ''; 
             
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5">ตลาดซึมจัด... แต่คราวนี้ไม่มีข้อมูลพลาดแน่ ลองรันใหม่อีกครั้งครับ</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4">ตลาดยับเยินจนหาตัวที่ทรงแข็งๆ ไม่เจอเลยครับ นั่งทับมือต่อไป!</td></tr>';
                 return;
             }
 
             data.data.forEach(stock => {
                 const row = `<tr>
                     <td><b>${stock.ticker}</b></td>
-                    <td>${stock.price.toFixed(2)}</td>
-                    <td>${stock.pe} เท่า</td>
-                    <td><span class="pbv-badge">${stock.pbv} เท่า</span></td>
-                    <td><span class="div-badge">${stock.dividend}%</span></td>
+                    <td>${stock.close.toFixed(2)}</td>
+                    <td><span class="rs-badge">${stock.rs_outperform}</span></td>
+                    <td class="vcp-badge">${stock.vcp_status}</td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
