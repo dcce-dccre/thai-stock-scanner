@@ -3,30 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบสแกนหุ้นไทยส่วนตัว</title>
+    <title>เรดาร์หุ้น VI (ถูก ดี มีเป้าขาย)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h2 { color: #333; text-align: center; }
         p.update-time { text-align: center; color: #888; font-size: 0.9em; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background-color: #28a745; color: white; }
-        tr:hover { background-color: #f1f1f1; }
+        th { background-color: #00695c; color: white; }
+        tr:hover { background-color: #e0f2f1; }
+        .target-box { font-weight: bold; color: #1565c0; }
+        .upside-box { background-color: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #c8e6c9; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>เรดาร์จับสัญญาณแท่งเทียนกลับตัว 🕯️</h2>
+    <h2>เรดาร์สแกนหุ้นสายพื้นฐาน (P/E ต่ำ + ปันผลสูง) 📊</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <table id="stockTable">
         <thead>
             <tr>
                 <th>ชื่อหุ้น</th>
-                <th>ราคาปิด</th>
-                <th>แพทเทิร์นที่พบ (Candlestick)</th>
+                <th>ราคาปัจจุบัน</th>
+                <th>P/E (เท่า)</th>
+                <th>ปันผล (%)</th>
+                <th>ราคาเป้าหมายเฉลี่ย</th>
+                <th>Upside (%)</th>
             </tr>
         </thead>
         <tbody>
@@ -38,21 +43,24 @@
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
+            document.getElementById('timestamp').innerText = 'อัปเดตข้อมูลล่าสุด: ' + data.last_updated;
             
             const tbody = document.querySelector('#stockTable tbody');
             tbody.innerHTML = ''; 
             
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">วันนี้ไม่มีหุ้นตัวไหนเกิดแท่งเทียนกลับตัวเลยครับ... ซึมต่อไป</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6">ยังไม่มีหุ้นตัวไหนผ่านเกณฑ์ (P/E < 15, ปันผล > 4%, Upside > 10%) ครับ</td></tr>';
                 return;
             }
 
             data.data.forEach(stock => {
                 const row = `<tr>
                     <td><b>${stock.ticker}</b></td>
-                    <td>${stock.close}</td>
-                    <td style="color: #d32f2f; font-weight: bold;">${stock.pattern}</td>
+                    <td>${stock.price.toFixed(2)}</td>
+                    <td>${stock.pe}</td>
+                    <td>${stock.dividend}%</td>
+                    <td class="target-box">${stock.target.toFixed(2)}</td>
+                    <td><span class="upside-box">+${stock.upside}%</span></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
