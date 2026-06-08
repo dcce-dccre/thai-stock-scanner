@@ -1,53 +1,89 @@
 {
-    "last_updated": "2026-06-08 03:47:35",
+    "last_updated": "2026-06-08 03:52:40",
     "data": [
         {
-            "ticker": "CPALL",
-            "price": 45.75,
-            "pe": 13.95,
-            "dividend": 361.0,
-            "target": 62.22,
-            "upside": 36.01
+            "ticker": "AP",
+            "price": 7.05,
+            "pe": 5.07,
+            "pbv": 0.47,
+            "dividend": 722.0
         },
         {
-            "ticker": "CPF",
-            "price": 18.9,
-            "pe": 7.13,
-            "dividend": 265.0,
-            "target": 22.76,
-            "upside": 20.41
+            "ticker": "SIRI",
+            "price": 1.4,
+            "pe": 5.83,
+            "pbv": 0.48,
+            "dividend": 1143.0
         },
         {
-            "ticker": "HMPRO",
-            "price": 6.0,
-            "pe": 13.64,
-            "dividend": 727.0,
-            "target": 7.15,
-            "upside": 19.15
-        },
-        {
-            "ticker": "PTTEP",
-            "price": 146.0,
-            "pe": 10.44,
-            "dividend": 606.0,
-            "target": 165.9,
-            "upside": 13.63
-        },
-        {
-            "ticker": "CPN",
-            "price": 64.5,
-            "pe": 14.76,
-            "dividend": 371.0,
-            "target": 73.28,
-            "upside": 13.61
+            "ticker": "BBL",
+            "price": 173.0,
+            "pe": 7.44,
+            "pbv": 0.57,
+            "dividend": 946.0
         },
         {
             "ticker": "TOP",
             "price": 46.75,
             "pe": 3.39,
-            "dividend": 432.0,
-            "target": 52.24,
-            "upside": 11.75
+            "pbv": 0.61,
+            "dividend": 432.0
+        },
+        {
+            "ticker": "RATCH",
+            "price": 30.0,
+            "pe": 10.49,
+            "pbv": 0.66,
+            "dividend": 529.0
+        },
+        {
+            "ticker": "PTT",
+            "price": 36.5,
+            "pe": 11.23,
+            "pbv": 0.88,
+            "dividend": 571.0
+        },
+        {
+            "ticker": "LH",
+            "price": 3.6,
+            "pe": 12.0,
+            "pbv": 0.91,
+            "dividend": 659.0
+        },
+        {
+            "ticker": "TTB",
+            "price": 2.32,
+            "pe": 10.09,
+            "pbv": 0.93,
+            "dividend": 578.0
+        },
+        {
+            "ticker": "SCB",
+            "price": 140.0,
+            "pe": 10.43,
+            "pbv": 0.95,
+            "dividend": 800.0
+        },
+        {
+            "ticker": "TU",
+            "price": 11.3,
+            "pe": 9.34,
+            "pbv": 0.97,
+            "dividend": 614.0
+        },
+        {
+            "ticker": "KTB",
+            "price": 35.25,
+            "pe": 10.07,
+            "pbv": 1.05,
+            "dividend": 1026.0
+        },
+        {
+            "ticker": "PTTEP",
+            "price": 146.0,
+            "pe": 10.44,
+            "pbv": 1.09,
+            "dividend": 606.0
         }
     ]
 }
