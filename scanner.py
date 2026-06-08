@@ -1,76 +1,67 @@
 import pandas as pd
 import yfinance as yf
-import pandas_ta as ta
 import datetime
 import json
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# 1. รายชื่อหุ้น SET100
-tickers = ['AAV.BK', 'ADVANC.BK', 'AMATA.BK', 'AOT.BK', 'AP.BK', 'AWC.BK', 'BAM.BK', 'BANPU.BK', 
-    'BBL.BK', 'BCH.BK', 'BCP.BK', 'BCPG.BK', 'BDMS.BK', 'BEM.BK', 'BGRIM.BK', 'BH.BK', 
-    'BJC.BK', 'BLA.BK', 'BPP.BK', 'BTS.BK', 'CBG.BK', 'CENTEL.BK', 'CHG.BK', 'CK.BK', 
-    'CKP.BK', 'COM7.BK', 'CPALL.BK', 'CPAXT.BK', 'CPF.BK', 'CPN.BK', 'CRC.BK', 'DELTA.BK', 
-    'DOHOME.BK', 'EA.BK', 'EGCO.BK', 'EPG.BK', 'ERW.BK', 'GLOBAL.BK', 'GPSC.BK', 'GULF.BK', 
-    'GUNKUL.BK', 'HANA.BK', 'HMPRO.BK', 'ICHI.BK', 'INTUCH.BK', 'IRPC.BK', 'ITC.BK', 
-    'IVL.BK', 'JMART.BK', 'JMT.BK', 'KBANK.BK', 'KCE.BK', 'KEX.BK', 'KKP.BK', 'KTB.BK', 
-    'KTC.BK', 'LH.BK', 'MEGA.BK', 'MINT.BK', 'MTC.BK', 'OR.BK', 'ORI.BK', 'OSP.BK', 
-    'PLANB.BK', 'PRM.BK', 'PSL.BK', 'PTG.BK', 'PTT.BK', 'PTTEP.BK', 'PTTGC.BK', 'QH.BK', 
-    'RATCH.BK', 'RBF.BK', 'RCL.BK', 'RS.BK', 'SAWAD.BK', 'SCB.BK', 'SCC.BK', 'SCGP.BK', 
-    'SIRI.BK', 'SJWD.BK', 'SPALI.BK', 'SPRC.BK', 'STA.BK', 'STEC.BK', 'STGT.BK', 'TCAP.BK', 
-    'THANI.BK', 'THCOM.BK', 'THG.BK', 'TIDLOR.BK', 'TIPH.BK', 'TISCO.BK', 'TOP.BK', 
-    'TRUE.BK', 'TTB.BK', 'TU.BK', 'VGI.BK', 'WHA.BK', 'WHAUP.BK']
-
-end_date = datetime.date.today()
-start_date = end_date - datetime.timedelta(days=100)
+# ดึงหุ้น SET100 มาตรวจสอบพื้นฐาน
+tickers = [
+    'ADVANC.BK', 'AOT.BK', 'BBL.BK', 'BDMS.BK', 'BEM.BK', 'BGRIM.BK', 'BH.BK', 
+    'CPALL.BK', 'CPF.BK', 'CPN.BK', 'CRC.BK', 'DELTA.BK', 'EA.BK', 'EGCO.BK', 
+    'GLOBAL.BK', 'GPSC.BK', 'GULF.BK', 'HMPRO.BK', 'INTUCH.BK', 'KBANK.BK', 
+    'KTB.BK', 'MINT.BK', 'OR.BK', 'PTT.BK', 'PTTEP.BK', 'PTTGC.BK', 'SCB.BK', 
+    'SCC.BK', 'TISCO.BK', 'TOP.BK', 'TRUE.BK', 'TTB.BK', 'WHA.BK'
+]
 
 results = []
-
-print("กำลังใช้คณิตศาสตร์ถอดรหัสแท่งเทียน...")
+print("กำลังสแกนหาหุ้น ถูก ดี มีปันผล และ Upside สูง...")
 
 for ticker in tickers:
     try:
-        df = yf.download(ticker, start=start_date, end=end_date, progress=False)
-        if len(df) < 20: continue
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        
+        # ป้องกัน Error กรณี yfinance ไม่มีข้อมูลบางตัว
+        current_price = info.get('currentPrice', info.get('previousClose', 0))
+        pe_ratio = info.get('trailingPE', 0)
+        div_yield = info.get('dividendYield', 0)
+        target_price = info.get('targetMeanPrice', 0)
+        
+        if not all([current_price, target_price]):
+            continue
             
-        # 2. ให้ pandas_ta สแกนหาแพทเทิร์นแท่งเทียน
-        # คืนค่าออกมาเป็นตารางที่มีค่า 100 (ถ้าเจอขาขึ้น), -100 (ถ้าเจอขาลง), หรือ 0 (ถ้าไม่เจอ)
-        hammer = df.ta.cdl_pattern(name="hammer")
-        engulfing = df.ta.cdl_pattern(name="engulfing")
+        div_yield_percent = div_yield * 100 if div_yield else 0
+        upside = ((target_price - current_price) / current_price) * 100
         
-        # ดึงข้อมูลแถวล่าสุด (ราคาปิดของวันนี้) มาเช็ก
-        latest_close = df['Close'].iloc[-1]
+        # --- กฎเหล็กสาย VI ---
+        # 1. P/E ต้องมากกว่า 0 (บริษัทมีกำไร) และน้อยกว่า 15 เท่า (ราคาถูก)
+        # 2. ปันผลมากกว่า 4% 
+        # 3. Upside มากกว่า 10% (ราคาเป้าหมายสูงกว่าราคาปัจจุบันพอสมควร)
         
-        # ตรวจสอบว่ามีค่า 100 ในคอลัมน์ของวันล่าสุดหรือไม่
-        latest_hammer = hammer.iloc[-1, 0] if (hammer is not None and not hammer.empty) else 0
-        latest_engulfing = engulfing.iloc[-1, 0] if (engulfing is not None and not engulfing.empty) else 0
-        
-        is_hammer = (latest_hammer == 100)
-        is_engulfing = (latest_engulfing == 100)
-        
-        # 3. ถ้าเจอแพทเทิร์นใดแพทเทิร์นหนึ่ง ให้บันทึกลงระบบ
-        if is_hammer or is_engulfing:
-            pattern_name = []
-            if is_hammer: pattern_name.append("Hammer 🔨")
-            if is_engulfing: pattern_name.append("Bullish Engulfing 📈")
-            
+        if (0 < pe_ratio < 15) and (div_yield_percent >= 4.0) and (upside >= 10.0):
             results.append({
                 "ticker": ticker.replace('.BK', ''),
-                "close": round(float(latest_close), 2),
-                "pattern": " + ".join(pattern_name)
+                "price": round(current_price, 2),
+                "pe": round(pe_ratio, 2),
+                "dividend": round(div_yield_percent, 2),
+                "target": round(target_price, 2),
+                "upside": round(upside, 2)
             })
             
     except Exception as e:
         pass
 
-# 4. บันทึกผลลัพธ์ลงไฟล์ data.json
+# เรียงลำดับจากตัวที่มี Upside (ส่วนต่างกำไร) มากที่สุดไปน้อยที่สุด
+results = sorted(results, key=lambda x: x['upside'], reverse=True)
+
 output = {
-    "last_updated": end_date.strftime("%Y-%m-%d %H:%M:%S"),
+    "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "data": results
 }
 
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False)
 
-print("สแกนและบันทึกไฟล์ data.json สำเร็จ!")
+print("อัปเดตฐานข้อมูลหุ้น VI สำเร็จ!")
