@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เรดาร์หุ้น VI (ถูก ดี มีเป้าขาย)</title>
+    <title>เรดาร์หุ้นคุณค่าตามบัญชี (Benjamin Graham Style)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { color: #333; text-align: center; }
+        h2 { color: #1a237e; text-align: center; }
         p.update-time { text-align: center; color: #888; font-size: 0.9em; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background-color: #00695c; color: white; }
-        tr:hover { background-color: #e0f2f1; }
-        .target-box { font-weight: bold; color: #1565c0; }
-        .upside-box { background-color: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #c8e6c9; }
+        th { background-color: #2e7d32; color: white; }
+        tr:hover { background-color: #f1f8e9; }
+        .pbv-badge { background-color: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #c8e6c9; }
+        .div-badge { font-weight: bold; color: #e65100; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>เรดาร์สแกนหุ้นสายพื้นฐาน (P/E ต่ำ + ปันผลสูง) 📊</h2>
+    <h2>เรดาร์สแกนหุ้นถูกและดี (P/E ต่ำ + ราคาต่ำกว่ามูลค่าบัญชี P/BV) 📈</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <table id="stockTable">
@@ -29,9 +29,8 @@
                 <th>ชื่อหุ้น</th>
                 <th>ราคาปัจจุบัน</th>
                 <th>P/E (เท่า)</th>
-                <th>ปันผล (%)</th>
-                <th>ราคาเป้าหมายเฉลี่ย</th>
-                <th>Upside (%)</th>
+                <th>P/BV (เท่า)</th>
+                <th>ปันผลปีล่าสุด</th>
             </tr>
         </thead>
         <tbody>
@@ -49,7 +48,7 @@
             tbody.innerHTML = ''; 
             
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">ยังไม่มีหุ้นตัวไหนผ่านเกณฑ์ (P/E < 15, ปันผล > 4%, Upside > 10%) ครับ</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">ตลาดซึมจัด... แต่คราวนี้ไม่มีข้อมูลพลาดแน่ ลองรันใหม่อีกครั้งครับ</td></tr>';
                 return;
             }
 
@@ -57,10 +56,9 @@
                 const row = `<tr>
                     <td><b>${stock.ticker}</b></td>
                     <td>${stock.price.toFixed(2)}</td>
-                    <td>${stock.pe}</td>
-                    <td>${stock.dividend}%</td>
-                    <td class="target-box">${stock.target.toFixed(2)}</td>
-                    <td><span class="upside-box">+${stock.upside}%</span></td>
+                    <td>${stock.pe} เท่า</td>
+                    <td><span class="pbv-badge">${stock.pbv} เท่า</span></td>
+                    <td><span class="div-badge">${stock.dividend}%</span></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
