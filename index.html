@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เรดาร์จับมังกรซ่อนกาย (RS + VCP)</title>
+    <title>Top 10 หุ้นแกร่งสวนตลาด (RS Ranking)</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { color: #bb86fc; text-align: center; }
-        p.update-time { text-align: center; color: #888; font-size: 0.9em; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #333; }
-        th { background-color: #3700b3; color: white; border-top-left-radius: 4px; border-top-right-radius: 4px;}
-        tr:hover { background-color: #2c2c2c; }
-        .rs-badge { background-color: #03dac6; color: #000; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .vcp-badge { color: #cf6679; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; }
+        p.update-time { text-align: center; color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
+        .set-status { text-align: center; background: #334155; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; border: 1px solid #475569; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #334155; }
+        th { background-color: #0ea5e9; color: white; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        tr:hover { background-color: #334155; }
+        .rank-1 { color: #fbbf24; font-size: 1.2em; font-weight: bold; } /* ทอง */
+        .rank-2 { color: #cbd5e1; font-size: 1.1em; font-weight: bold; } /* เงิน */
+        .rank-3 { color: #b45309; font-size: 1.1em; font-weight: bold; } /* ทองแดง */
+        .positive { color: #4ade80; font-weight: bold; }
+        .negative { color: #f87171; font-weight: bold; }
+        .rs-badge { background-color: #0284c7; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>เรดาร์จับมังกร (หุ้นชนะตลาด + กราฟบีบตัว) 🐉</h2>
+    <h2>🏆 Top 10 หุ้นแกร่งที่สุดใน SET100 🏆</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
+    
+    <div class="set-status" id="setStatus">ผลตอบแทนดัชนี SET (3 เดือนล่าสุด): กำลังโหลดข้อมูล...</div>
     
     <table id="stockTable">
         <thead>
             <tr>
+                <th>อันดับ</th>
                 <th>ชื่อหุ้น</th>
                 <th>ราคาปิด</th>
-                <th>ชนะตลาด (3 เดือน)</th>
-                <th>พฤติกรรมกราฟ</th>
+                <th>ผลตอบแทน (3 เดือน)</th>
+                <th>RS Score (เทียบตลาด)</th>
             </tr>
         </thead>
         <tbody>
@@ -43,26 +51,44 @@
         .then(data => {
             document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
             
+            // อัปเดตแถบสถานะดัชนี SET
+            const setRet = data.set_return_3m;
+            const setClass = setRet >= 0 ? 'positive' : 'negative';
+            const setSign = setRet > 0 ? '+' : '';
+            document.getElementById('setStatus').innerHTML = `ภาพรวมดัชนี SET (3 เดือนล่าสุด): <span class="${setClass}">${setSign}${setRet}%</span>`;
+            
             const tbody = document.querySelector('#stockTable tbody');
             tbody.innerHTML = ''; 
             
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4">ตลาดยับเยินจนหาตัวที่ทรงแข็งๆ ไม่เจอเลยครับ นั่งทับมือต่อไป!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
                 return;
             }
 
-            data.data.forEach(stock => {
+            data.data.forEach((stock, index) => {
+                const rank = index + 1;
+                let rankHtml = `<b>${rank}</b>`;
+                if(rank === 1) rankHtml = `<span class="rank-1">👑 1</span>`;
+                if(rank === 2) rankHtml = `<span class="rank-2">🥈 2</span>`;
+                if(rank === 3) rankHtml = `<span class="rank-3">🥉 3</span>`;
+
+                const retClass = stock.return_3m >= 0 ? 'positive' : 'negative';
+                const retSign = stock.return_3m > 0 ? '+' : '';
+                const rsSign = stock.rs_score > 0 ? '+' : '';
+
                 const row = `<tr>
+                    <td>${rankHtml}</td>
                     <td><b>${stock.ticker}</b></td>
                     <td>${stock.close.toFixed(2)}</td>
-                    <td><span class="rs-badge">${stock.rs_outperform}</span></td>
-                    <td class="vcp-badge">${stock.vcp_status}</td>
+                    <td class="${retClass}">${retSign}${stock.return_3m}%</td>
+                    <td><span class="rs-badge">${rsSign}${stock.rs_score}%</span></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
         })
         .catch(error => {
             document.getElementById('timestamp').innerText = 'ไม่พบข้อมูล กรุณารอระบบรันครับ';
+            document.getElementById('setStatus').innerText = '';
         });
 </script>
 
