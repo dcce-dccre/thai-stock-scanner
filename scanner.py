@@ -4,8 +4,18 @@ import datetime
 import json
 import warnings
 import requests
+import math
 
 warnings.filterwarnings('ignore')
+
+# 🛡️ ระบบแอนตี้ไวรัส: แปลงค่าที่พัง (NaN) ให้กลายเป็น 0 ป้องกันเว็บค้าง
+def clean(value):
+    try:
+        if pd.isna(value) or math.isnan(value) or math.isinf(value):
+            return 0.0
+        return float(value)
+    except:
+        return 0.0
 
 # รายชื่อหุ้น SET100
 tickers = [
@@ -37,14 +47,16 @@ try:
     set_ticker = yf.Ticker('^SET.BK', session=session)
     set_df = set_ticker.history(start=start_date, end=end_date)
     if len(set_df) >= 60:
-        set_return = (float(set_df['Close'].iloc[-1]) / float(set_df['Close'].iloc[-60])) - 1
+        set_latest = clean(set_df['Close'].iloc[-1])
+        set_past = clean(set_df['Close'].iloc[-60])
+        set_return = (set_latest / set_past) - 1 if set_past > 0 else 0.0
     else:
         set_return = 0.0
 except:
     set_return = 0.0
 
 all_stocks = []
-print("กำลังสแกนขั้นสูง (RS + Volume + Trend + SL + TP)...")
+print("กำลังสแกนขั้นสูง (กรองไวรัส NaN)...")
 
 for ticker in tickers:
     try:
@@ -60,30 +72,27 @@ for ticker in tickers:
             vol_col = df['Volume']
             low_col = df['Low']
             
-        latest_close = float(close_col.iloc[-1])
-        past_close = float(close_col.iloc[-60])
+        latest_close = clean(close_col.iloc[-1])
+        past_close = clean(close_col.iloc[-60])
         
-        # 1. RS Score
+        if past_close == 0: continue
+        
         stock_return = (latest_close / past_close) - 1
         rs_score = stock_return - set_return
         
-        # 2. Volume Ratio
-        avg_vol_20 = vol_col.tail(20).mean()
-        latest_vol = vol_col.iloc[-1]
+        avg_vol_20 = clean(vol_col.tail(20).mean())
+        latest_vol = clean(vol_col.iloc[-1])
         vol_ratio = latest_vol / avg_vol_20 if avg_vol_20 > 0 else 1.0
         
-        # 3. Trend Check
-        ema50 = close_col.ewm(span=50, adjust=False).mean().iloc[-1]
+        ema50 = clean(close_col.ewm(span=50, adjust=False).mean().iloc[-1])
         trend = "ขาขึ้น 🟢" if latest_close > ema50 else "ขาลง 🔴"
         
-        # 4. แผนหนีตาย (Stop Loss)
-        low_5d = low_col.tail(5).min()
+        low_5d = clean(low_col.tail(5).min())
         stop_loss = low_5d - 0.05
         
-        if stop_loss >= latest_close:
+        if stop_loss >= latest_close or stop_loss == -0.05:
             stop_loss = latest_close * 0.95
             
-        # 5. เป้าทำกำไร (Take Profit) สูตร Risk/Reward 1:2
         risk_per_share = latest_close - stop_loss
         take_profit = latest_close + (risk_per_share * 2.0)
             
@@ -92,15 +101,14 @@ for ticker in tickers:
             "close": round(latest_close, 2),
             "return_3m": round(stock_return * 100, 2),
             "rs_score": round(rs_score * 100, 2),
-            "vol_ratio": round(float(vol_ratio), 2),
+            "vol_ratio": round(vol_ratio, 2),
             "trend": trend,
-            "stop_loss": round(float(stop_loss), 2),
-            "take_profit": round(float(take_profit), 2)
+            "stop_loss": round(stop_loss, 2),
+            "take_profit": round(take_profit, 2)
         })
     except Exception as e:
         pass
 
-# จัดอันดับ Top 10
 sorted_stocks = sorted(all_stocks, key=lambda x: x['rs_score'], reverse=True)
 top_10_stocks = sorted_stocks[:10]
 
@@ -110,7 +118,8 @@ output = {
     "data": top_10_stocks
 }
 
+# กำหนด allow_nan=False เพื่อบล็อกไม่ให้เขียนคำว่า NaN ลงในไฟล์เด็ดขาด
 with open('data.json', 'w', encoding='utf-8') as f:
-    json.dump(output, f, indent=4, ensure_ascii=False)
+    json.dump(output, f, indent=4, ensure_ascii=False, allow_nan=False)
 
-print("จัดอันดับ V7 สำเร็จเรียบร้อย!")
+print("จัดอันดับ V8 (Antivirus Edition) สำเร็จเรียบร้อย!")
