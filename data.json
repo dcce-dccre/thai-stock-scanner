@@ -1,5 +1,5 @@
 {
-    "last_updated": "2026-06-09 02:35:28",
+    "last_updated": "2026-06-09 12:37:27",
     "set_return_3m": 10.19,
     "data": [
         {
@@ -12,8 +12,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 34.7,
             "take_profit": 37.85,
-            "fair_value": 13.45,
-            "mos": -165.77
+            "fair_value": 13.0,
+            "mos": -175.06
         },
         {
             "ticker": "GUNKUL",
@@ -25,8 +25,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 3.71,
             "take_profit": 3.92,
-            "fair_value": 2.91,
-            "mos": -29.73
+            "fair_value": 2.84,
+            "mos": -33.17
         },
         {
             "ticker": "EPG",
@@ -38,8 +38,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 5.5,
             "take_profit": 5.8,
-            "fair_value": 6.9,
-            "mos": 18.8
+            "fair_value": 7.02,
+            "mos": 20.25
         },
         {
             "ticker": "IRPC",
@@ -64,8 +64,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 32.7,
             "take_profit": 38.85,
-            "fair_value": 15.2,
-            "mos": -128.69
+            "fair_value": 14.87,
+            "mos": -133.62
         },
         {
             "ticker": "SCGP",
@@ -77,8 +77,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 23.55,
             "take_profit": 29.4,
-            "fair_value": 20.71,
-            "mos": -23.12
+            "fair_value": 21.13,
+            "mos": -20.71
         },
         {
             "ticker": "AMATA",
@@ -90,8 +90,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 24.45,
             "take_profit": 28.35,
-            "fair_value": 39.75,
-            "mos": 35.22
+            "fair_value": 37.91,
+            "mos": 32.08
         },
         {
             "ticker": "WHAUP",
@@ -103,8 +103,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 5.6,
             "take_profit": 6.65,
-            "fair_value": 4.85,
-            "mos": -22.6
+            "fair_value": 4.81,
+            "mos": -23.63
         },
         {
             "ticker": "RBF",
@@ -116,8 +116,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 4.13,
             "take_profit": 5.84,
-            "fair_value": 3.63,
-            "mos": -29.37
+            "fair_value": 3.76,
+            "mos": -24.97
         },
         {
             "ticker": "SCC",
