@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Quant Dashboard V8 (Debug Edition)</title>
+    <title>Ultimate Quant Dashboard V9 (Fair Value)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 10px; margin: 0; }
-        .container { max-width: 1200px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .container { max-width: 1250px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 1.5em; }
         p.update-time { text-align: center; color: #94a3b8; font-size: 0.85em; margin-bottom: 15px; }
         
@@ -16,9 +16,9 @@
         .hint-text { font-size: 0.8em; color: #94a3b8; display: block; margin-top: 8px; text-align: center; }
         
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 0.9em; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #334155; white-space: nowrap; }
-        th { background-color: #0ea5e9; color: white; position: sticky; top: 0; }
+        th { background-color: #0ea5e9; color: white; position: sticky; top: 0; z-index: 10;}
         tr:hover { background-color: #273549; }
         
         .rank-1 { color: #fbbf24; font-weight: bold; font-size: 1.1em;}
@@ -29,10 +29,15 @@
         
         .badge-green { background: #16a34a; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
         .badge-red { background: #dc2626; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
+        .badge-gray { background: #475569; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
         
         .sl-box { background: #451a03; color: #f97316; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #7c2d12; }
         .tp-box { background: #064e3b; color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #065f46; }
         .calc-stock { background: #1e3a8a; color: #60a5fa; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+        
+        .fv-undervalued { color: #4ade80; font-weight: bold; }
+        .fv-overvalued { color: #f87171; font-weight: bold; }
+        .fv-na { color: #94a3b8; font-style: italic; }
 
         @media (max-width: 768px) {
             body { padding: 5px; }
@@ -44,7 +49,7 @@
 <body>
 
 <div class="container">
-    <h2>🏆 Ultimate Quant Dashboard 🏆</h2>
+    <h2>🏆 Ultimate Quant Dashboard V9 (Value + Momentum)</h2>
     <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
     
     <div class="card" id="setStatus" style="text-align: center; font-weight: bold;">ภาพรวมดัชนี SET (3 เดือน): กำลังโหลดข้อมูล...</div>
@@ -52,7 +57,7 @@
     <div class="card">
         <label for="riskInput">💰 งบที่คุณ "ยอมเสียสูงสุด" ต่อ 1 ไม้ (บาท):</label>
         <input type="number" id="riskInput" value="2000" oninput="calculatePositions()">
-        <span class="hint-text">*พิมพ์ตัวเลขปุ๊บ เลื่อนดูจำนวนหุ้นขวาสุดได้เลย 👉</span>
+        <span class="hint-text">*พิมพ์ปุ๊บ เลื่อนขวาดูคำแนะนำลงทุนได้เลย 👉</span>
     </div>
     
     <div class="table-responsive">
@@ -61,13 +66,13 @@
                 <tr>
                     <th>อันดับ</th>
                     <th>หุ้น</th>
-                    <th>เข้าซื้อ (ราคา)</th>
+                    <th>ราคาปิด</th>
+                    <th>มูลค่าที่แท้จริง (Fair Value)</th>
+                    <th>ความคุ้มค่า (Margin of Safety)</th>
                     <th>RS Score</th>
-                    <th>เทรนด์</th>
                     <th>จุดหนี (SL)</th>
                     <th>เป้าขาย (TP)</th>
-                    <th>จำนวนที่ซื้อได้</th>
-                    <th>ใช้เงินทุน (บาท)</th>
+                    <th>แนะนำซื้อ (หุ้น)</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,9 +86,7 @@
 
     fetch('data.json')
         .then(response => {
-            if (!response.ok) {
-                throw new Error("เกิดข้อผิดพลาดในการเข้าถึงไฟล์ (HTTP " + response.status + ")");
-            }
+            if (!response.ok) throw new Error("HTTP " + response.status);
             return response.json();
         })
         .then(data => {
@@ -98,10 +101,7 @@
             calculatePositions();
         })
         .catch(error => {
-            // ระบบแจ้ง Error หน้าจอชัดเจน ไม่ปล่อยให้หมุนค้าง
             document.getElementById('timestamp').innerText = 'ระบบขัดข้อง: ' + error.message;
-            document.getElementById('setStatus').innerHTML = '<span class="negative">⚠️ ดึงข้อมูลไม่สำเร็จ! โปรดตรวจสอบว่าคุณเปิดดูผ่านเว็บลิงก์ GitHub Pages อยู่หรือไม่?</span>';
-            console.error(error);
         });
 
     function calculatePositions() {
@@ -109,10 +109,7 @@
         const tbody = document.querySelector('#stockTable tbody');
         tbody.innerHTML = '';
         
-        if (currentData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9">ไม่มีข้อมูลหุ้น</td></tr>';
-            return;
-        }
+        if (currentData.length === 0) return;
 
         currentData.forEach((stock, index) => {
             const rank = index + 1;
@@ -121,29 +118,43 @@
             if(rank === 2) rankHtml = `<span class="rank-2">🥈 2</span>`;
             if(rank === 3) rankHtml = `<span class="rank-3">🥉 3</span>`;
 
+            // คำนวณจำนวนหุ้นที่ควรซื้อ (Position Sizing)
             const riskPerShare = stock.close - stock.stop_loss;
             let sharesToBuy = 0;
-            let totalCapital = 0;
-            
             if (riskPerShare > 0 && riskAmount > 0) {
                 sharesToBuy = Math.floor(riskAmount / riskPerShare);
                 sharesToBuy = Math.floor(sharesToBuy / 100) * 100; 
-                totalCapital = sharesToBuy * stock.close;
             }
 
-            const trendBadge = stock.trend === "ขาขึ้น 🟢" ? '<span class="badge-green">ขึ้น 🟢</span>' : '<span class="badge-red">ลง 🔴</span>';
+            // จัดการสีของ Fair Value และ Margin of Safety
+            let fvHtml = '';
+            let mosHtml = '';
+            
+            if (!stock.fair_value || stock.fair_value === 0) {
+                fvHtml = `<span class="fv-na">ประเมินไม่ได้*</span>`;
+                mosHtml = `<span class="badge-gray">-</span>`;
+            } else if (stock.close < stock.fair_value) {
+                // ของถูก (Undervalued) สีเขียว
+                fvHtml = `<span class="fv-undervalued">฿${stock.fair_value.toFixed(2)}</span>`;
+                mosHtml = `<span class="badge-green">ถูกกว่ามูลค่า ${stock.mos.toFixed(1)}%</span>`;
+            } else {
+                // ของแพง (Overvalued) สีแดง
+                fvHtml = `<span class="fv-overvalued">฿${stock.fair_value.toFixed(2)}</span>`;
+                mosHtml = `<span class="badge-red">แพงกว่ามูลค่า ${Math.abs(stock.mos).toFixed(1)}%</span>`;
+            }
+
             const rsSign = stock.rs_score > 0 ? '+' : '';
 
             const row = `<tr>
                 <td>${rankHtml}</td>
                 <td style="font-size: 1.1em;"><b>${stock.ticker}</b></td>
                 <td><b>${stock.close.toFixed(2)}</b></td>
+                <td>${fvHtml}</td>
+                <td>${mosHtml}</td>
                 <td><span class="positive">${rsSign}${stock.rs_score}%</span></td>
-                <td>${trendBadge}</td>
                 <td><span class="sl-box">${stock.stop_loss.toFixed(2)}</span></td>
                 <td><span class="tp-box">${stock.take_profit.toFixed(2)}</span></td>
                 <td><span class="calc-stock">${sharesToBuy.toLocaleString()} หุ้น</span></td>
-                <td><b>${totalCapital.toLocaleString()}</b></td>
             </tr>`;
             tbody.innerHTML += row;
         });
