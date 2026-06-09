@@ -8,7 +8,7 @@ import math
 
 warnings.filterwarnings('ignore')
 
-# 🛡️ ระบบแอนตี้ไวรัส: แปลงค่าที่พัง (NaN) ให้กลายเป็น 0 ป้องกันเว็บค้าง
+# 🛡️ ระบบแอนตี้ไวรัส: ป้องกันค่าที่พัง (NaN) ให้กลายเป็น 0 
 def clean(value):
     try:
         if pd.isna(value) or math.isnan(value) or math.isinf(value):
@@ -37,12 +37,13 @@ tickers = [
 end_date = datetime.date.today()
 start_date = end_date - datetime.timedelta(days=120)
 
+# สร้าง Session แปลงร่างเป็นเบราว์เซอร์กันโดนบล็อก
 session = requests.Session()
 session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 })
 
-print("ดาวน์โหลดข้อมูล Benchmark (SET Index)...")
+print("1. ดาวน์โหลดข้อมูล Benchmark (SET Index)...")
 try:
     set_ticker = yf.Ticker('^SET.BK', session=session)
     set_df = set_ticker.history(start=start_date, end=end_date)
@@ -56,21 +57,25 @@ except:
     set_return = 0.0
 
 all_stocks = []
-print("กำลังสแกนขั้นสูง (กรองไวรัส NaN)...")
+print("2. สแกนกราฟเทคนิคอลหุ้น 100 ตัวรวดเดียว...")
+
+df = yf.download(tickers, start=start_date, end=end_date, session=session, progress=False)
+
+is_multi = isinstance(df.columns, pd.MultiIndex)
 
 for ticker in tickers:
     try:
-        df = yf.download(ticker, start=start_date, end=end_date, session=session, progress=False)
-        if len(df) < 60: continue
-            
-        if isinstance(df.columns, pd.MultiIndex):
-            close_col = df['Close'][ticker]
-            vol_col = df['Volume'][ticker]
-            low_col = df['Low'][ticker]
+        if is_multi:
+            close_col = df['Close'][ticker].dropna()
+            vol_col = df['Volume'][ticker].dropna()
+            low_col = df['Low'][ticker].dropna()
         else:
-            close_col = df['Close']
-            vol_col = df['Volume']
-            low_col = df['Low']
+            if ticker not in df['Close']: continue
+            close_col = df['Close'].dropna()
+            vol_col = df['Volume'].dropna()
+            low_col = df['Low'].dropna()
+            
+        if len(close_col) < 60: continue
             
         latest_close = clean(close_col.iloc[-1])
         past_close = clean(close_col.iloc[-60])
@@ -98,6 +103,7 @@ for ticker in tickers:
             
         all_stocks.append({
             "ticker": ticker.replace('.BK', ''),
+            "yf_ticker": ticker,
             "close": round(latest_close, 2),
             "return_3m": round(stock_return * 100, 2),
             "rs_score": round(rs_score * 100, 2),
@@ -109,8 +115,32 @@ for ticker in tickers:
     except Exception as e:
         pass
 
+# คัดเลือกเฉพาะ Top 10 ตัวที่แกร่งที่สุด
 sorted_stocks = sorted(all_stocks, key=lambda x: x['rs_score'], reverse=True)
 top_10_stocks = sorted_stocks[:10]
+
+print("3. เจาะงบการเงินเฉพาะหุ้น Top 10 เพื่อหาราคาที่เหมาะสม (Fair Value)...")
+for stock in top_10_stocks:
+    try:
+        info = yf.Ticker(stock['yf_ticker'], session=session).info
+        pe = clean(info.get('trailingPE', 0))
+        pbv = clean(info.get('priceToBook', 0))
+        
+        # คำนวณมูลค่าที่แท้จริงตามสูตรของ Graham 
+        if pe > 0 and pbv > 0:
+            graham_multiplier = math.sqrt(22.5 / (pe * pbv))
+            fair_value = stock['close'] * graham_multiplier
+            mos = ((fair_value - stock['close']) / fair_value) * 100 
+        else:
+            fair_value = 0.0
+            mos = 0.0
+            
+        stock['fair_value'] = round(fair_value, 2)
+        stock['mos'] = round(mos, 2) 
+        
+    except Exception as e:
+        stock['fair_value'] = 0.0
+        stock['mos'] = 0.0
 
 output = {
     "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -118,8 +148,8 @@ output = {
     "data": top_10_stocks
 }
 
-# กำหนด allow_nan=False เพื่อบล็อกไม่ให้เขียนคำว่า NaN ลงในไฟล์เด็ดขาด
+# สร้างไฟล์ json และสั่งไม่ให้มีคำว่า NaN หลุดไปเด็ดขาด
 with open('data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=4, ensure_ascii=False, allow_nan=False)
 
-print("จัดอันดับ V8 (Antivirus Edition) สำเร็จเรียบร้อย!")
+print("จัดอันดับ V9 (Fair Value Edition) สำเร็จเรียบร้อย!")
