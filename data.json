@@ -1,5 +1,5 @@
 {
-    "last_updated": "2026-06-12 05:56:42",
+    "last_updated": "2026-06-12 06:01:21",
     "set_return_3m": 11.85,
     "data": [
         {
@@ -12,8 +12,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 3.67,
             "take_profit": 4.54,
-            "fair_value": 2.81,
-            "mos": -40.72
+            "fair_value": 2.83,
+            "mos": -40.03
         },
         {
             "ticker": "EPG",
@@ -38,8 +38,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 34.7,
             "take_profit": 39.35,
-            "fair_value": 13.18,
-            "mos": -175.06
+            "fair_value": 13.09,
+            "mos": -176.92
         },
         {
             "ticker": "AMATA",
@@ -51,8 +51,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 25.2,
             "take_profit": 30.6,
-            "fair_value": 41.68,
-            "mos": 35.22
+            "fair_value": 41.28,
+            "mos": 34.59
         },
         {
             "ticker": "SCGP",
@@ -90,8 +90,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 5.65,
             "take_profit": 6.55,
-            "fair_value": 4.85,
-            "mos": -22.6
+            "fair_value": 4.81,
+            "mos": -23.63
         },
         {
             "ticker": "DELTA",
@@ -129,8 +129,8 @@
             "trend": "ขาขึ้น 🟢",
             "stop_loss": 32.7,
             "take_profit": 38.85,
-            "fair_value": 14.47,
-            "mos": -140.2
+            "fair_value": 14.57,
+            "mos": -138.56
         }
     ]
 }
