@@ -3,158 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V11 Mobile Actionable Dashboard</title>
+    <title>V12 Ultimate Quant Dashboard</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #aaaaaa;
-            --accent-green: #00e676;
-            --accent-red: #ff5252;
-            --accent-yellow: #ffd600;
-            --accent-blue: #29b6f6;
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-green: #2ea043;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --accent-blue: #58a6ff;
+            --border-color: #30363d;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 15px;
         }
 
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: var(--accent-blue); font-size: 1.5em; margin-bottom: 5px; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { color: var(--accent-blue); font-size: 1.6em; margin-bottom: 5px; }
         .header p { color: var(--text-muted); font-size: 0.9em; margin-top: 0; }
 
-        table, thead, tbody, th, td, tr { display: block; width: 100%; box-sizing: border-box; }
-        thead tr { display: none; }
-        
-        tr {
+        .dashboard-container { width: 100%; max-width: 800px; margin: 0 auto; }
+
+        .stock-card {
             background-color: var(--panel-bg);
-            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-            border: 1px solid #333;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        
-        td {
-            border-bottom: 1px dashed #333;
-            padding: 10px 0;
+
+        /* Header ของแต่ละการ์ด (ชื่อหุ้น + ราคา) */
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.95em;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .symbol { font-size: 1.8em; color: #fff; font-weight: 800; }
+        .current-price { font-size: 1.5em; color: var(--accent-blue); font-weight: bold; }
+
+        /* การจัดกลุ่มข้อมูล (Grid) */
+        .data-section { margin-bottom: 15px; }
+        .section-title { font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background-color: rgba(255,255,255,0.03);
+            padding: 10px;
+            border-radius: 8px;
         }
         
-        td:last-child { border-bottom: 0; padding-bottom: 0; margin-top: 15px; flex-direction: column; align-items: stretch;}
-        td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); font-size: 0.9em; }
+        .data-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .data-label { font-size: 0.75em; color: var(--text-muted); margin-bottom: 4px; }
+        .data-value { font-size: 1.1em; font-weight: bold; }
 
-        .symbol { font-size: 1.4em; color: var(--accent-blue); font-weight: bold; }
-        .pass { color: var(--accent-green); font-weight: bold; }
+        /* สีสถานะ */
+        .pass { color: var(--accent-green); }
         .fail { color: var(--accent-red); }
         .warn { color: var(--accent-yellow); }
 
-        /* กล่องแสดงราคา Trading Plan */
+        /* แผนการเทรด */
         .trading-plan {
-            background-color: #2a2a2a;
+            background-color: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            border-left: 5px solid var(--accent-blue);
             border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
-            text-align: center;
-            border-left: 4px solid var(--accent-blue);
+            margin-bottom: 15px;
         }
-        .price-box { display: flex; flex-direction: column; }
-        .price-label { font-size: 0.75em; color: var(--text-muted); text-transform: uppercase; }
-        .price-value { font-size: 1.1em; font-weight: bold; margin-top: 3px; }
-        .price-buy { color: var(--text-main); }
+        .price-box { display: flex; flex-direction: column; align-items: center; width: 33%; }
+        .price-box:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.1); }
+        .price-buy { color: #fff; }
         .price-sl { color: var(--accent-red); }
         .price-tp { color: var(--accent-green); }
 
+        /* ปุ่ม Action */
         .btn-action {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: none;
-            border-radius: 5px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1.1em;
             cursor: pointer;
             text-transform: uppercase;
-            font-size: 1em;
-            margin-top: 10px;
+            letter-spacing: 1px;
         }
-        .btn-buy { background-color: var(--accent-green); color: #000; }
+        .btn-buy { background-color: var(--accent-green); color: #fff; box-shadow: 0 0 10px rgba(46, 160, 67, 0.4); }
         .btn-wait { background-color: var(--accent-yellow); color: #000; }
-        .btn-ignore { background-color: #444; color: var(--text-muted); }
+        .btn-ignore { background-color: #21262d; color: var(--text-muted); border: 1px solid var(--border-color); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🎯 V11 Actionable Scanner</h1>
-        <p>พร้อมแผนการเทรด และราคาเป้าหมาย</p>
+        <h1>📊 V12 Ultimate Dashboard</h1>
+        <p>จัดเต็มข้อมูลพื้นฐาน กราฟ และจุดเข้าทำ</p>
     </div>
 
-    <div id="dashboard-container">
+    <div class="dashboard-container" id="dashboard-container">
         </div>
 
     <script>
-        // ข้อมูลจำลอง พร้อมราคาปิด (Close Price)
+        // ข้อมูลจำลอง (Mock Data)
         const stocks = [
-            { symbol: "KCE", price: 35.00, rs: 85, eps: 25, overSma50: true },
-            { symbol: "DELTA", price: 75.50, rs: 92, eps: 15, overSma50: true },
-            { symbol: "CPALL", price: 58.25, rs: 65, eps: 8, overSma50: false }
+            { symbol: "KCE", price: 35.00, rs: 85, eps: 25, sales: 22, roe: 18, overSma50: true, volumeSpike: true },
+            { symbol: "DELTA", price: 75.50, rs: 92, eps: 15, sales: 18, roe: 20, overSma50: true, volumeSpike: false },
+            { symbol: "CPALL", price: 58.25, rs: 65, eps: 8, sales: 12, roe: 14, overSma50: false, volumeSpike: false }
         ];
 
         const container = document.getElementById('dashboard-container');
 
         stocks.forEach(stock => {
+            // ประมวลผลเงื่อนไข
             const rsPass = stock.rs >= 80;
             const epsPass = stock.eps >= 20;
-            const isBuy = rsPass && epsPass && stock.overSma50;
+            const salesPass = stock.sales >= 20;
+            const roePass = stock.roe >= 15;
+            const isBuy = rsPass && epsPass && salesPass && roePass && stock.overSma50 && stock.volumeSpike;
             
-            // คำนวณราคาอัตโนมัติ (ความเสี่ยง 5%, หวังผล 10%)
+            // คำนวณราคา
             const stopLoss = (stock.price * 0.95).toFixed(2);
             const takeProfit = (stock.price * 1.10).toFixed(2);
             
+            // ปุ่ม
             let btnClass = "btn-ignore";
-            let actionText = "Ignore";
+            let actionText = "IGNORE / ไม่เข้าเกณฑ์";
             
             if(isBuy) {
                 btnClass = "btn-buy";
-                actionText = "Ready to Buy";
+                actionText = "🔥 READY TO BUY 🔥";
             } else if (rsPass && stock.overSma50) {
                 btnClass = "btn-wait";
-                actionText = "Wait & See";
+                actionText = "⏳ WAIT & SEE";
             }
 
             const card = `
-                <tr>
-                    <td data-label="หุ้น (Symbol)" class="symbol">${stock.symbol}</td>
-                    <td data-label="ราคาปัจจุบัน (Close)">${stock.price.toFixed(2)} ฿</td>
-                    <td data-label="RS Score (> 80)" class="${rsPass ? 'pass' : 'fail'}">${stock.rs}</td>
-                    <td data-label="กำไร EPS (> 20%)" class="${epsPass ? 'pass' : 'fail'}">${stock.eps}%</td>
-                    <td data-label="Trading Plan">
-                        <div class="trading-plan">
-                            <div class="price-box">
-                                <span class="price-label">Entry</span>
-                                <span class="price-value price-buy">${stock.price.toFixed(2)}</span>
+                <div class="stock-card">
+                    <div class="card-header">
+                        <div class="symbol">${stock.symbol}</div>
+                        <div class="current-price">฿${stock.price.toFixed(2)}</div>
+                    </div>
+
+                    <div class="data-section">
+                        <div class="section-title">🏢 Fundamentals (ปัจจัยพื้นฐาน)</div>
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <span class="data-label">EPS Growth</span>
+                                <span class="data-value ${epsPass ? 'pass' : 'fail'}">${stock.eps}%</span>
                             </div>
-                            <div class="price-box">
-                                <span class="price-label">Cut Loss</span>
-                                <span class="price-value price-sl">${stopLoss}</span>
+                            <div class="data-item">
+                                <span class="data-label">Sales Growth</span>
+                                <span class="data-value ${salesPass ? 'pass' : 'fail'}">${stock.sales}%</span>
                             </div>
-                            <div class="price-box">
-                                <span class="price-label">Target</span>
-                                <span class="price-value price-tp">${takeProfit}</span>
+                            <div class="data-item">
+                                <span class="data-label">ROE</span>
+                                <span class="data-value ${roePass ? 'pass' : 'fail'}">${stock.roe}%</span>
                             </div>
                         </div>
-                        <button class="btn-action ${btnClass}">${actionText}</button>
-                    </td>
-                </tr>
+                    </div>
+
+                    <div class="data-section">
+                        <div class="section-title">📈 Technicals (ปัจจัยเทคนิค)</div>
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <span class="data-label">RS Score</span>
+                                <span class="data-value ${rsPass ? 'pass' : 'fail'}">${stock.rs}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Trend (SMA50)</span>
+                                <span class="data-value ${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UP' : 'DOWN'}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">Volume</span>
+                                <span class="data-value ${stock.volumeSpike ? 'pass' : 'warn'}">${stock.volumeSpike ? 'HIGH' : 'LOW'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-section">
+                        <div class="section-title">🎯 Trading Plan (แผนการเทรด R:R 1:2)</div>
+                        <div class="trading-plan">
+                            <div class="price-box">
+                                <span class="data-label">Entry (จุดซื้อ)</span>
+                                <span class="data-value price-buy">${stock.price.toFixed(2)}</span>
+                            </div>
+                            <div class="price-box">
+                                <span class="data-label">Stop Loss (-5%)</span>
+                                <span class="data-value price-sl">${stopLoss}</span>
+                            </div>
+                            <div class="price-box">
+                                <span class="data-label">Target (+10%)</span>
+                                <span class="data-value price-tp">${takeProfit}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-action ${btnClass}">${actionText}</button>
+                </div>
             `;
             container.innerHTML += card;
         });
