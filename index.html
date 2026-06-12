@@ -3,163 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Quant Dashboard V9 (Fair Value)</title>
+    <title>V10 Quant Dashboard</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 10px; margin: 0; }
-        .container { max-width: 1250px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h2 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 1.5em; }
-        p.update-time { text-align: center; color: #94a3b8; font-size: 0.85em; margin-bottom: 15px; }
-        
-        .card { background: #334155; padding: 15px; border-radius: 8px; border: 1px solid #475569; margin-bottom: 15px; }
-        .card label { font-weight: bold; color: #38bdf8; display: block; margin-bottom: 8px; font-size: 0.9em; }
-        .card input { width: 100%; max-width: 100%; box-sizing: border-box; padding: 10px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 4px; font-size: 1.1em; text-align: center; }
-        .hint-text { font-size: 0.8em; color: #94a3b8; display: block; margin-top: 8px; text-align: center; }
-        
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 0.9em; }
-        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #334155; white-space: nowrap; }
-        th { background-color: #0ea5e9; color: white; position: sticky; top: 0; z-index: 10;}
-        tr:hover { background-color: #273549; }
-        
-        .rank-1 { color: #fbbf24; font-weight: bold; font-size: 1.1em;}
-        .rank-2 { color: #cbd5e1; font-weight: bold; font-size: 1.1em;}
-        .rank-3 { color: #b45309; font-weight: bold; font-size: 1.1em;}
-        .positive { color: #4ade80; font-weight: bold; }
-        .negative { color: #f87171; font-weight: bold; }
-        
-        .badge-green { background: #16a34a; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
-        .badge-red { background: #dc2626; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
-        .badge-gray { background: #475569; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.85em; }
-        
-        .sl-box { background: #451a03; color: #f97316; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #7c2d12; }
-        .tp-box { background: #064e3b; color: #34d399; padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #065f46; }
-        .calc-stock { background: #1e3a8a; color: #60a5fa; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
-        
-        .fv-undervalued { color: #4ade80; font-weight: bold; }
-        .fv-overvalued { color: #f87171; font-weight: bold; }
-        .fv-na { color: #94a3b8; font-style: italic; }
-
-        @media (max-width: 768px) {
-            body { padding: 5px; }
-            .container { padding: 10px; }
-            .card input { font-size: 1em; padding: 8px; }
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --accent-green: #00e676;
+            --accent-red: #ff5252;
+            --accent-yellow: #ffd600;
         }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--accent-green);
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 0;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--panel-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: #2c2c2c;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: #2a2a2a;
+        }
+
+        .symbol {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #fff;
+        }
+
+        /* Status Colors */
+        .pass { color: var(--accent-green); font-weight: bold; }
+        .fail { color: var(--accent-red); }
+        .warn { color: var(--accent-yellow); }
+
+        .btn-action {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+
+        .btn-buy { background-color: var(--accent-green); color: #000; }
+        .btn-wait { background-color: var(--accent-yellow); color: #000; }
+        .btn-ignore { background-color: #444; color: var(--text-muted); }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🏆 Ultimate Quant Dashboard V9 (Value + Momentum)</h2>
-    <p class="update-time" id="timestamp">กำลังโหลดข้อมูล...</p>
-    
-    <div class="card" id="setStatus" style="text-align: center; font-weight: bold;">ภาพรวมดัชนี SET (3 เดือน): กำลังโหลดข้อมูล...</div>
-    
-    <div class="card">
-        <label for="riskInput">💰 งบที่คุณ "ยอมเสียสูงสุด" ต่อ 1 ไม้ (บาท):</label>
-        <input type="number" id="riskInput" value="2000" oninput="calculatePositions()">
-        <span class="hint-text">*พิมพ์ปุ๊บ เลื่อนขวาดูคำแนะนำลงทุนได้เลย 👉</span>
+    <div class="header">
+        <h1>🚀 V10 Quant Dashboard</h1>
+        <p>Fundamental + Technical + Momentum Scanner</p>
     </div>
-    
-    <div class="table-responsive">
-        <table id="stockTable">
+
+    <div class="dashboard-container">
+        <table>
             <thead>
                 <tr>
-                    <th>อันดับ</th>
-                    <th>หุ้น</th>
-                    <th>ราคาปิด</th>
-                    <th>มูลค่าที่แท้จริง (Fair Value)</th>
-                    <th>ความคุ้มค่า (Margin of Safety)</th>
-                    <th>RS Score</th>
-                    <th>จุดหนี (SL)</th>
-                    <th>เป้าขาย (TP)</th>
-                    <th>แนะนำซื้อ (หุ้น)</th>
+                    <th>Symbol</th>
+                    <th>RS Score<br>(> 80)</th>
+                    <th>EPS Growth<br>(> 20%)</th>
+                    <th>Sales Growth<br>(> 20%)</th>
+                    <th>ROE<br>(> 15%)</th>
+                    <th>Trend<br>(> SMA 50)</th>
+                    <th>Volume<br>(Breakout)</th>
+                    <th>System Suggestion</th>
                 </tr>
             </thead>
-            <tbody>
-                </tbody>
+            <tbody id="stock-data">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
         </table>
     </div>
-</div>
 
-<script>
-    let currentData = [];
+    <script>
+        // ข้อมูลจำลอง (Mock Data) แทนที่ด้วยข้อมูลจาก API หรือ Database ของคุณ
+        const stocks = [
+            { symbol: "KCE", rs: 85, eps: 25, sales: 22, roe: 18, overSma50: true, volumeSpike: true },
+            { symbol: "DELTA", rs: 92, eps: 15, sales: 18, roe: 20, overSma50: true, volumeSpike: false },
+            { symbol: "CPALL", rs: 65, eps: 8, sales: 12, roe: 14, overSma50: false, volumeSpike: false },
+            { symbol: "ADVANC", rs: 81, eps: 22, sales: 25, roe: 16, overSma50: true, volumeSpike: true },
+            { symbol: "JMART", rs: 88, eps: -5, sales: 10, roe: 8, overSma50: true, volumeSpike: true }
+        ];
 
-    fetch('data.json')
-        .then(response => {
-            if (!response.ok) throw new Error("HTTP " + response.status);
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('timestamp').innerText = 'อัปเดตล่าสุด: ' + data.last_updated;
+        const tableBody = document.getElementById('stock-data');
+
+        stocks.forEach(stock => {
+            // เช็คเงื่อนไข CAN SLIM / Quant
+            const rsPass = stock.rs >= 80;
+            const epsPass = stock.eps >= 20;
+            const salesPass = stock.sales >= 20;
+            const roePass = stock.roe >= 15;
             
-            const setRet = data.set_return_3m;
-            const setClass = setRet >= 0 ? 'positive' : 'negative';
-            const setSign = setRet > 0 ? '+' : '';
-            document.getElementById('setStatus').innerHTML = `ภาพรวม SET (3 เดือน): <span class="${setClass}">${setSign}${setRet}%</span>`;
+            // คำนวณ Action
+            let actionText = "Ignore";
+            let btnClass = "btn-ignore";
             
-            currentData = data.data;
-            calculatePositions();
-        })
-        .catch(error => {
-            document.getElementById('timestamp').innerText = 'ระบบขัดข้อง: ' + error.message;
-        });
-
-    function calculatePositions() {
-        const riskAmount = parseFloat(document.getElementById('riskInput').value) || 0;
-        const tbody = document.querySelector('#stockTable tbody');
-        tbody.innerHTML = '';
-        
-        if (currentData.length === 0) return;
-
-        currentData.forEach((stock, index) => {
-            const rank = index + 1;
-            let rankHtml = `<b>${rank}</b>`;
-            if(rank === 1) rankHtml = `<span class="rank-1">👑 1</span>`;
-            if(rank === 2) rankHtml = `<span class="rank-2">🥈 2</span>`;
-            if(rank === 3) rankHtml = `<span class="rank-3">🥉 3</span>`;
-
-            // คำนวณจำนวนหุ้นที่ควรซื้อ (Position Sizing)
-            const riskPerShare = stock.close - stock.stop_loss;
-            let sharesToBuy = 0;
-            if (riskPerShare > 0 && riskAmount > 0) {
-                sharesToBuy = Math.floor(riskAmount / riskPerShare);
-                sharesToBuy = Math.floor(sharesToBuy / 100) * 100; 
+            if (rsPass && epsPass && salesPass && roePass && stock.overSma50 && stock.volumeSpike) {
+                actionText = "Ready to Buy";
+                btnClass = "btn-buy";
+            } else if (rsPass && stock.overSma50) {
+                actionText = "Wait & See";
+                btnClass = "btn-wait";
             }
 
-            // จัดการสีของ Fair Value และ Margin of Safety
-            let fvHtml = '';
-            let mosHtml = '';
-            
-            if (!stock.fair_value || stock.fair_value === 0) {
-                fvHtml = `<span class="fv-na">ประเมินไม่ได้*</span>`;
-                mosHtml = `<span class="badge-gray">-</span>`;
-            } else if (stock.close < stock.fair_value) {
-                // ของถูก (Undervalued) สีเขียว
-                fvHtml = `<span class="fv-undervalued">฿${stock.fair_value.toFixed(2)}</span>`;
-                mosHtml = `<span class="badge-green">ถูกกว่ามูลค่า ${stock.mos.toFixed(1)}%</span>`;
-            } else {
-                // ของแพง (Overvalued) สีแดง
-                fvHtml = `<span class="fv-overvalued">฿${stock.fair_value.toFixed(2)}</span>`;
-                mosHtml = `<span class="badge-red">แพงกว่ามูลค่า ${Math.abs(stock.mos).toFixed(1)}%</span>`;
-            }
-
-            const rsSign = stock.rs_score > 0 ? '+' : '';
-
-            const row = `<tr>
-                <td>${rankHtml}</td>
-                <td style="font-size: 1.1em;"><b>${stock.ticker}</b></td>
-                <td><b>${stock.close.toFixed(2)}</b></td>
-                <td>${fvHtml}</td>
-                <td>${mosHtml}</td>
-                <td><span class="positive">${rsSign}${stock.rs_score}%</span></td>
-                <td><span class="sl-box">${stock.stop_loss.toFixed(2)}</span></td>
-                <td><span class="tp-box">${stock.take_profit.toFixed(2)}</span></td>
-                <td><span class="calc-stock">${sharesToBuy.toLocaleString()} หุ้น</span></td>
-            </tr>`;
-            tbody.innerHTML += row;
+            // สร้างแถวข้อมูลตาราง
+            const row = `
+                <tr>
+                    <td class="symbol">${stock.symbol}</td>
+                    <td class="${rsPass ? 'pass' : 'fail'}">${stock.rs}</td>
+                    <td class="${epsPass ? 'pass' : 'fail'}">${stock.eps}%</td>
+                    <td class="${salesPass ? 'pass' : 'fail'}">${stock.sales}%</td>
+                    <td class="${roePass ? 'pass' : 'fail'}">${stock.roe}%</td>
+                    <td class="${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UPTREND' : 'DOWNTREND'}</td>
+                    <td class="${stock.volumeSpike ? 'pass' : 'warn'}">${stock.volumeSpike ? 'HIGH' : 'NORMAL'}</td>
+                    <td><button class="btn-action ${btnClass}">${actionText}</button></td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
         });
-    }
-</script>
+    </script>
 
 </body>
 </html>
