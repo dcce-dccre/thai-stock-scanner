@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V10 Quant Dashboard</title>
+    <title>V10 Mobile Quant Dashboard</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -20,21 +20,23 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
             color: var(--accent-green);
+            font-size: 1.5em;
             margin-bottom: 5px;
         }
 
         .header p {
             color: var(--text-muted);
+            font-size: 0.9em;
             margin-top: 0;
         }
 
@@ -42,10 +44,6 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            background-color: var(--panel-bg);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            overflow: hidden;
         }
 
         table {
@@ -54,7 +52,7 @@
         }
 
         th, td {
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             border-bottom: 1px solid #333;
         }
@@ -62,48 +60,102 @@
         th {
             background-color: #2c2c2c;
             color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
             font-size: 0.85em;
-            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        tr:hover {
-            background-color: #2a2a2a;
-        }
+        tr:hover { background-color: #2a2a2a; }
 
-        .symbol {
-            font-weight: bold;
-            font-size: 1.2em;
-            color: #fff;
-        }
-
-        /* Status Colors */
+        .symbol { font-weight: bold; font-size: 1.2em; color: #fff; }
         .pass { color: var(--accent-green); font-weight: bold; }
         .fail { color: var(--accent-red); }
         .warn { color: var(--accent-yellow); }
 
         .btn-action {
-            padding: 8px 15px;
+            padding: 8px 12px;
             border: none;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
-            font-size: 0.8em;
+            font-size: 0.85em;
         }
 
         .btn-buy { background-color: var(--accent-green); color: #000; }
         .btn-wait { background-color: var(--accent-yellow); color: #000; }
         .btn-ignore { background-color: #444; color: var(--text-muted); }
 
+        /* =========================================
+           🔥 เวทมนตร์สำหรับ Mobile (Card View) 🔥
+           ========================================= */
+        @media screen and (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            
+            /* ซ่อนหัวตารางแบบเดิม */
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            /* เปลี่ยนแถวให้เป็นการ์ด */
+            tr {
+                background-color: var(--panel-bg);
+                margin-bottom: 15px;
+                border-radius: 12px;
+                padding: 15px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+                border: 1px solid #333;
+            }
+            
+            /* จัดเรียงข้อมูลในแต่ละบรรทัดของการ์ด */
+            td {
+                border: none;
+                border-bottom: 1px solid #2a2a2a;
+                position: relative;
+                padding: 10px 0;
+                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            td:last-child {
+                border-bottom: 0;
+                padding-bottom: 0;
+                margin-top: 10px;
+                justify-content: center;
+            }
+
+            /* ดึงชื่อหัวข้อมาแสดงฝั่งซ้าย */
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--text-muted);
+                font-size: 0.85em;
+                text-align: left;
+            }
+            
+            .symbol {
+                font-size: 1.4em;
+                color: var(--accent-green);
+            }
+
+            .btn-action {
+                width: 100%;
+                padding: 12px;
+                font-size: 1em;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🚀 V10 Quant Dashboard</h1>
-        <p>Fundamental + Technical + Momentum Scanner</p>
+        <h1>🚀 V10 Mobile Scanner</h1>
+        <p>ระบบสแกนหุ้นเติบโต แข็งแกร่งกว่าตลาด</p>
     </div>
 
     <div class="dashboard-container">
@@ -111,23 +163,22 @@
             <thead>
                 <tr>
                     <th>Symbol</th>
-                    <th>RS Score<br>(> 80)</th>
-                    <th>EPS Growth<br>(> 20%)</th>
-                    <th>Sales Growth<br>(> 20%)</th>
-                    <th>ROE<br>(> 15%)</th>
-                    <th>Trend<br>(> SMA 50)</th>
-                    <th>Volume<br>(Breakout)</th>
-                    <th>System Suggestion</th>
+                    <th>RS Score</th>
+                    <th>EPS Growth</th>
+                    <th>Sales Growth</th>
+                    <th>ROE</th>
+                    <th>Trend</th>
+                    <th>Volume</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="stock-data">
-                <!-- Data will be populated by JavaScript -->
+                <!-- ข้อมูลจะถูกเติมด้วย JavaScript -->
             </tbody>
         </table>
     </div>
 
     <script>
-        // ข้อมูลจำลอง (Mock Data) แทนที่ด้วยข้อมูลจาก API หรือ Database ของคุณ
         const stocks = [
             { symbol: "KCE", rs: 85, eps: 25, sales: 22, roe: 18, overSma50: true, volumeSpike: true },
             { symbol: "DELTA", rs: 92, eps: 15, sales: 18, roe: 20, overSma50: true, volumeSpike: false },
@@ -139,13 +190,11 @@
         const tableBody = document.getElementById('stock-data');
 
         stocks.forEach(stock => {
-            // เช็คเงื่อนไข CAN SLIM / Quant
             const rsPass = stock.rs >= 80;
             const epsPass = stock.eps >= 20;
             const salesPass = stock.sales >= 20;
             const roePass = stock.roe >= 15;
             
-            // คำนวณ Action
             let actionText = "Ignore";
             let btnClass = "btn-ignore";
             
@@ -157,17 +206,17 @@
                 btnClass = "btn-wait";
             }
 
-            // สร้างแถวข้อมูลตาราง
+            // เพิ่ม data-label เพื่อให้ CSS ดึงชื่อไปแสดงในโหมดมือถือได้
             const row = `
                 <tr>
-                    <td class="symbol">${stock.symbol}</td>
-                    <td class="${rsPass ? 'pass' : 'fail'}">${stock.rs}</td>
-                    <td class="${epsPass ? 'pass' : 'fail'}">${stock.eps}%</td>
-                    <td class="${salesPass ? 'pass' : 'fail'}">${stock.sales}%</td>
-                    <td class="${roePass ? 'pass' : 'fail'}">${stock.roe}%</td>
-                    <td class="${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UPTREND' : 'DOWNTREND'}</td>
-                    <td class="${stock.volumeSpike ? 'pass' : 'warn'}">${stock.volumeSpike ? 'HIGH' : 'NORMAL'}</td>
-                    <td><button class="btn-action ${btnClass}">${actionText}</button></td>
+                    <td data-label="หุ้น (Symbol)" class="symbol">${stock.symbol}</td>
+                    <td data-label="RS Score (> 80)" class="${rsPass ? 'pass' : 'fail'}">${stock.rs}</td>
+                    <td data-label="กำไร EPS (> 20%)" class="${epsPass ? 'pass' : 'fail'}">${stock.eps}%</td>
+                    <td data-label="ยอดขาย (> 20%)" class="${salesPass ? 'pass' : 'fail'}">${stock.sales}%</td>
+                    <td data-label="ROE (> 15%)" class="${roePass ? 'pass' : 'fail'}">${stock.roe}%</td>
+                    <td data-label="ทรงกราฟ (SMA 50)" class="${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UPTREND' : 'DOWNTREND'}</td>
+                    <td data-label="วอลุ่ม (Breakout)" class="${stock.volumeSpike ? 'pass' : 'warn'}">${stock.volumeSpike ? 'HIGH' : 'NORMAL'}</td>
+                    <td data-label=""><button class="btn-action ${btnClass}">${actionText}</button></td>
                 </tr>
             `;
             tableBody.innerHTML += row;
