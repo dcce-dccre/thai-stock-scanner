@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V12 Ultimate Quant Dashboard</title>
+    <title>V13 Expanded Universe Dashboard</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -14,143 +14,164 @@
             --accent-red: #f85149;
             --accent-yellow: #d29922;
             --accent-blue: #58a6ff;
+            --accent-purple: #bc8cff;
             --border-color: #30363d;
         }
 
         body {
-            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 15px;
+            padding: 10px;
         }
 
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: var(--accent-blue); font-size: 1.6em; margin-bottom: 5px; }
-        .header p { color: var(--text-muted); font-size: 0.9em; margin-top: 0; }
+        .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+        .header h1 { color: var(--accent-blue); font-size: 1.5em; margin-bottom: 5px; }
+        .header p { color: var(--text-muted); font-size: 0.85em; margin-top: 0; }
 
-        .dashboard-container { width: 100%; max-width: 800px; margin: 0 auto; }
+        /* ตัวกรองด้านบน */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-bottom: 10px;
+            scrollbar-width: none;
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+        .badge {
+            white-space: nowrap;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+        }
+
+        .dashboard-container { width: 100%; max-width: 600px; margin: 0 auto; }
 
         .stock-card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        /* Header ของแต่ละการ์ด (ชื่อหุ้น + ราคา) */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 15px;
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
         }
-        .symbol { font-size: 1.8em; color: #fff; font-weight: 800; }
-        .current-price { font-size: 1.5em; color: var(--accent-blue); font-weight: bold; }
 
-        /* การจัดกลุ่มข้อมูล (Grid) */
-        .data-section { margin-bottom: 15px; }
-        .section-title { font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
-        
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            background-color: rgba(255,255,255,0.03);
-            padding: 10px;
-            border-radius: 8px;
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .symbol { font-size: 1.4em; color: #fff; font-weight: 800; }
+        .current-price { font-size: 1.2em; font-weight: bold; }
+
+        /* ป้ายสถานะ Action */
+        .status-badge {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
         }
-        
+        .tier-perfect { background-color: var(--accent-green); color: #fff; }
+        .tier-momentum { background-color: var(--accent-purple); color: #fff; }
+        .tier-accumulate { background-color: var(--accent-blue); color: #fff; }
+        .tier-overextended { background-color: var(--accent-yellow); color: #000; }
+        .tier-ignore { background-color: #21262d; color: var(--text-muted); border: 1px dashed var(--text-muted); }
+
+        .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; margin-bottom: 10px; }
         .data-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .data-label { font-size: 0.75em; color: var(--text-muted); margin-bottom: 4px; }
-        .data-value { font-size: 1.1em; font-weight: bold; }
+        .data-label { font-size: 0.65em; color: var(--text-muted); margin-bottom: 2px; }
+        .data-value { font-size: 0.9em; font-weight: bold; }
 
-        /* สีสถานะ */
         .pass { color: var(--accent-green); }
         .fail { color: var(--accent-red); }
-        .warn { color: var(--accent-yellow); }
 
-        /* แผนการเทรด */
-        .trading-plan {
-            background-color: rgba(88, 166, 255, 0.1);
-            border: 1px solid rgba(88, 166, 255, 0.3);
-            border-left: 5px solid var(--accent-blue);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        .price-box { display: flex; flex-direction: column; align-items: center; width: 33%; }
-        .price-box:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.1); }
-        .price-buy { color: #fff; }
-        .price-sl { color: var(--accent-red); }
-        .price-tp { color: var(--accent-green); }
-
-        /* ปุ่ม Action */
-        .btn-action {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: 1.1em;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .btn-buy { background-color: var(--accent-green); color: #fff; box-shadow: 0 0 10px rgba(46, 160, 67, 0.4); }
-        .btn-wait { background-color: var(--accent-yellow); color: #000; }
-        .btn-ignore { background-color: #21262d; color: var(--text-muted); border: 1px solid var(--border-color); }
+        .trading-plan { display: flex; justify-content: space-between; font-size: 0.8em; padding-top: 10px; border-top: 1px solid var(--border-color); }
+        .plan-item { text-align: center; width: 33%; }
+        .plan-val { font-weight: bold; display: block; margin-top: 3px; font-size: 1.1em; }
+        .plan-sl { color: var(--accent-red); }
+        .plan-tp { color: var(--accent-green); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>📊 V12 Ultimate Dashboard</h1>
-        <p>จัดเต็มข้อมูลพื้นฐาน กราฟ และจุดเข้าทำ</p>
+        <h1>🌌 V13 Market Universe</h1>
+        <p>มีตัวเลือกให้คุณเปรียบเทียบเสมอ</p>
+    </div>
+
+    <!-- โชว์สรุปว่ามีหุ้นเข้าเกณฑ์กี่ตัว -->
+    <div class="filter-bar">
+        <div class="badge" style="color: var(--accent-green);">🔥 Perfect (2)</div>
+        <div class="badge" style="color: var(--accent-purple);">🚀 Momentum (2)</div>
+        <div class="badge" style="color: var(--accent-blue);">🛒 Accumulate (3)</div>
+        <div class="badge" style="color: var(--accent-yellow);">⚠️ Overextended (1)</div>
     </div>
 
     <div class="dashboard-container" id="dashboard-container">
-        </div>
+        <!-- JS จะสร้างการ์ดมาใส่ตรงนี้ -->
+    </div>
 
     <script>
-        // ข้อมูลจำลอง (Mock Data)
+        // ฐานข้อมูลหุ้น 10 ตัวที่มีสภาพแวดล้อมต่างกัน
         const stocks = [
-            { symbol: "KCE", price: 35.00, rs: 85, eps: 25, sales: 22, roe: 18, overSma50: true, volumeSpike: true },
-            { symbol: "DELTA", price: 75.50, rs: 92, eps: 15, sales: 18, roe: 20, overSma50: true, volumeSpike: false },
-            { symbol: "CPALL", price: 58.25, rs: 65, eps: 8, sales: 12, roe: 14, overSma50: false, volumeSpike: false }
+            // กลุ่ม Perfect Setup (ครบทุกเกณฑ์)
+            { symbol: "KCE", price: 35.00, rs: 85, eps: 25, roe: 18, overSma50: true, volumeSpike: true, overextended: false },
+            { symbol: "ADVANC", price: 210.00, rs: 82, eps: 22, roe: 16, overSma50: true, volumeSpike: true, overextended: false },
+            
+            // กลุ่ม Momentum Play (กราฟพุ่ง โวลุ่มเข้า แต่งบยังไม่โต/ขาดทุน)
+            { symbol: "JMART", price: 15.20, rs: 88, eps: -5, roe: 8, overSma50: true, volumeSpike: true, overextended: false },
+            { symbol: "TRUE", price: 8.50, rs: 90, eps: 5, roe: 5, overSma50: true, volumeSpike: true, overextended: false },
+
+            // กลุ่ม Accumulate (งบดีมาก แต่ RS ยังกลางๆ รอคนมาไล่ราคา)
+            { symbol: "BBL", price: 140.50, rs: 65, eps: 28, roe: 15, overSma50: true, volumeSpike: false, overextended: false },
+            { symbol: "PTTEP", price: 155.00, rs: 70, eps: 35, roe: 20, overSma50: true, volumeSpike: false, overextended: false },
+            { symbol: "TTB", price: 1.85, rs: 68, eps: 20, roe: 12, overSma50: true, volumeSpike: false, overextended: false },
+
+            // กลุ่ม Overextended (งบดี กราฟดี แต่วิ่งไกลเกินไป เสี่ยงโดนเทขาย)
+            { symbol: "DELTA", price: 75.50, rs: 95, eps: 25, roe: 22, overSma50: true, volumeSpike: true, overextended: true },
+
+            // กลุ่ม Ignore (ขาลง)
+            { symbol: "EA", price: 25.00, rs: 30, eps: -10, roe: 5, overSma50: false, volumeSpike: false, overextended: false },
+            { symbol: "CPALL", price: 56.00, rs: 45, eps: 8, roe: 14, overSma50: false, volumeSpike: false, overextended: false }
         ];
 
         const container = document.getElementById('dashboard-container');
 
         stocks.forEach(stock => {
-            // ประมวลผลเงื่อนไข
-            const rsPass = stock.rs >= 80;
-            const epsPass = stock.eps >= 20;
-            const salesPass = stock.sales >= 20;
-            const roePass = stock.roe >= 15;
-            const isBuy = rsPass && epsPass && salesPass && roePass && stock.overSma50 && stock.volumeSpike;
+            // จัดเกรด 5-Tier Logic
+            const rsHigh = stock.rs >= 80;
+            const fundGood = stock.eps >= 15 && stock.roe >= 12;
             
-            // คำนวณราคา
-            const stopLoss = (stock.price * 0.95).toFixed(2);
-            const takeProfit = (stock.price * 1.10).toFixed(2);
-            
-            // ปุ่ม
-            let btnClass = "btn-ignore";
-            let actionText = "IGNORE / ไม่เข้าเกณฑ์";
-            
-            if(isBuy) {
-                btnClass = "btn-buy";
-                actionText = "🔥 READY TO BUY 🔥";
-            } else if (rsPass && stock.overSma50) {
-                btnClass = "btn-wait";
-                actionText = "⏳ WAIT & SEE";
+            let tierClass = "tier-ignore";
+            let tierText = "🚫 IGNORE (รอไปก่อน)";
+
+            if (!stock.overSma50) {
+                tierClass = "tier-ignore";
+                tierText = "🚫 IGNORE (ต่ำกว่าเส้น 50 วัน)";
+            } else if (stock.overextended) {
+                tierClass = "tier-overextended";
+                tierText = "⚠️ WAIT PULLBACK (ห้ามไล่ราคา)";
+            } else if (rsHigh && fundGood && stock.volumeSpike) {
+                tierClass = "tier-perfect";
+                tierText = "🔥 PERFECT SETUP (พร้อมลุย)";
+            } else if (rsHigh && !fundGood && stock.volumeSpike) {
+                tierClass = "tier-momentum";
+                tierText = "🚀 MOMENTUM (เก็งกำไร/เล่นสั้น)";
+            } else if (!rsHigh && fundGood && stock.overSma50) {
+                tierClass = "tier-accumulate";
+                tierText = "🛒 ACCUMULATE (ทยอยสะสม)";
             }
+
+            // คำนวณ R:R
+            const slPrice = (stock.price * 0.95).toFixed(2);
+            const tpPrice = (stock.price * 1.10).toFixed(2);
 
             const card = `
                 <div class="stock-card">
@@ -158,62 +179,42 @@
                         <div class="symbol">${stock.symbol}</div>
                         <div class="current-price">฿${stock.price.toFixed(2)}</div>
                     </div>
+                    
+                    <div class="status-badge ${tierClass}">${tierText}</div>
 
-                    <div class="data-section">
-                        <div class="section-title">🏢 Fundamentals (ปัจจัยพื้นฐาน)</div>
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <span class="data-label">EPS Growth</span>
-                                <span class="data-value ${epsPass ? 'pass' : 'fail'}">${stock.eps}%</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">Sales Growth</span>
-                                <span class="data-value ${salesPass ? 'pass' : 'fail'}">${stock.sales}%</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">ROE</span>
-                                <span class="data-value ${roePass ? 'pass' : 'fail'}">${stock.roe}%</span>
-                            </div>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">RS</span>
+                            <span class="data-value ${stock.rs >= 80 ? 'pass' : 'fail'}">${stock.rs}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">EPS</span>
+                            <span class="data-value ${stock.eps >= 20 ? 'pass' : 'fail'}">${stock.eps}%</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">ROE</span>
+                            <span class="data-value ${stock.roe >= 15 ? 'pass' : 'fail'}">${stock.roe}%</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Vol</span>
+                            <span class="data-value ${stock.volumeSpike ? 'pass' : 'fail'}">${stock.volumeSpike ? 'IN' : 'DRY'}</span>
                         </div>
                     </div>
 
-                    <div class="data-section">
-                        <div class="section-title">📈 Technicals (ปัจจัยเทคนิค)</div>
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <span class="data-label">RS Score</span>
-                                <span class="data-value ${rsPass ? 'pass' : 'fail'}">${stock.rs}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">Trend (SMA50)</span>
-                                <span class="data-value ${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UP' : 'DOWN'}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">Volume</span>
-                                <span class="data-value ${stock.volumeSpike ? 'pass' : 'warn'}">${stock.volumeSpike ? 'HIGH' : 'LOW'}</span>
-                            </div>
+                    <div class="trading-plan">
+                        <div class="plan-item">
+                            <span class="data-label">Entry</span>
+                            <span class="plan-val">${stock.price.toFixed(2)}</span>
+                        </div>
+                        <div class="plan-item">
+                            <span class="data-label">Stop (-5%)</span>
+                            <span class="plan-val plan-sl">${slPrice}</span>
+                        </div>
+                        <div class="plan-item">
+                            <span class="data-label">Target (+10%)</span>
+                            <span class="plan-val plan-tp">${tpPrice}</span>
                         </div>
                     </div>
-
-                    <div class="data-section">
-                        <div class="section-title">🎯 Trading Plan (แผนการเทรด R:R 1:2)</div>
-                        <div class="trading-plan">
-                            <div class="price-box">
-                                <span class="data-label">Entry (จุดซื้อ)</span>
-                                <span class="data-value price-buy">${stock.price.toFixed(2)}</span>
-                            </div>
-                            <div class="price-box">
-                                <span class="data-label">Stop Loss (-5%)</span>
-                                <span class="data-value price-sl">${stopLoss}</span>
-                            </div>
-                            <div class="price-box">
-                                <span class="data-label">Target (+10%)</span>
-                                <span class="data-value price-tp">${takeProfit}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="btn-action ${btnClass}">${actionText}</button>
                 </div>
             `;
             container.innerHTML += card;
