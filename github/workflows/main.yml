@@ -1,0 +1,39 @@
+name: Daily Stock Screener
+
+on:
+  schedule:
+    # ตั้งเวลาตื่นของบอท: 10:30 UTC = 17:30 น. ตามเวลาประเทศไทย
+    # 1-5 หมายถึง วันจันทร์ ถึง วันศุกร์ (ไม่รันเสาร์-อาทิตย์)
+    - cron: '30 10 * * 1-5'
+  
+  # บรรทัดนี้สำคัญมาก! มันคือการสร้าง "ปุ่มกดรันแบบแมนนวล" ไว้ให้เรากดเทสต์ระบบได้ตลอดเวลา
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Screener Logic
+        run: |
+          python screener.py
+
+      - name: Commit and Push Data (เซฟไฟล์กลับลง GitHub)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add data.csv
+          git commit -m "Automated update: Market closed data" || echo "No changes to commit"
+          git push
