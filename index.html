@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V16 Automated Sniper</title>
+    <title>V16.1 Tactical Sniper</title>
     <style>
         :root {
             --bg-color: #0b0f19; --panel-bg: #111827; --text-main: #e5e7eb; --text-muted: #9ca3af;
@@ -15,6 +15,14 @@
         .header { text-align: center; margin-bottom: 20px; }
         .header h1 { color: var(--accent-blue); font-size: 1.6em; margin: 0 0 5px 0; letter-spacing: 1px; }
         .header p { color: var(--text-muted); font-size: 0.85em; margin: 0; }
+        
+        /* Control Panel Styles */
+        .control-panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px; }
+        .control-group { display: flex; gap: 10px; }
+        .control-panel select { flex: 1; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.9em; outline: none; appearance: none; }
+        .control-panel select:focus { border-color: var(--accent-blue); }
+        .result-count { text-align: center; font-size: 0.85em; color: var(--accent-yellow); font-weight: bold; margin-top: 5px; }
+
         .dashboard-container { max-width: 700px; margin: 0 auto; }
 
         .stock-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -47,37 +55,53 @@
 <body>
 
     <div class="header">
-        <h1>🛡️ V16 DEFENSIVE FORTRESS</h1>
+        <h1>🛡️ V16.1 TACTICAL SNIPER</h1>
         <p>เชื่อมต่อ API สดจาก GitHub อัตโนมัติ 100%</p>
     </div>
 
-    <div id="loading">กำลังโหลดข้อมูลจากฐานข้อมูลสไนเปอร์...</div>
-    <div class="dashboard-container" id="dashboard-container"></div>
+    <div class="dashboard-container">
+        <!-- แผงควบคุม Filter & Sort -->
+        <div class="control-panel" id="controlPanel" style="display: none;">
+            <div class="control-group">
+                <select id="filterSelect" onchange="renderDashboard()">
+                    <option value="ALL">🔍 ดูกระสุนทั้งหมด (All)</option>
+                    <option value="SAFE">🎯 SAFE ENTRY (พร้อมยิง)</option>
+                    <option value="WAIT">⚠️ WAIT PULLBACK (รอย่อ)</option>
+                </select>
+                <select id="sortSelect" onchange="renderDashboard()">
+                    <option value="SYMBOL">เรียงตามชื่อ (A-Z)</option>
+                    <option value="RSI_ASC">RSI (ต่ำไปสูง)</option>
+                    <option value="ATR_DESC">ATR (สวิงแรงสุด)</option>
+                </select>
+            </div>
+            <div class="result-count" id="resultCount">กำลังประมวลผล...</div>
+        </div>
+
+        <div id="loading">กำลังโหลดข้อมูลจากฐานข้อมูลสไนเปอร์...</div>
+        <div id="dashboard-content"></div>
+    </div>
 
     <script>
         // 👉 เปลี่ยนตรงนี้เป็นลิงก์ "RAW" จาก GitHub ของคุณ
         const csvUrl = "https://raw.githubusercontent.com/dcce-dccre/thai-stock-scanner/refs/heads/main/data.csv"; 
+        let globalData = []; // เก็บข้อมูลไว้ในหน่วยความจำเพื่อคัดกรอง
 
         async function fetchGitHubData() {
             try {
-                // ใส่ตัวแปรสุ่มต่อท้ายลิงก์ เพื่อป้องกันไม่ให้มือถือจำค่าเก่า (Cache Busting)
                 const cacheBuster = `?t=${new Date().getTime()}`;
                 const response = await fetch(csvUrl + cacheBuster);
                 
                 if (!response.ok) throw new Error("ดึงข้อมูลไม่สำเร็จ");
                 
                 const data = await response.text();
-                const rows = data.split('\n').slice(1); // ข้ามแถว Header (บรรทัดแรก)
+                const rows = data.split('\n').slice(1); 
                 
-                const container = document.getElementById('dashboard-container');
-                document.getElementById('loading').style.display = 'none'; // ซ่อนข้อความโหลด
-                container.innerHTML = ''; 
+                globalData = []; // ล้างของเก่า
 
                 rows.forEach(row => {
-                    if(!row.trim()) return; // ข้ามบรรทัดว่าง
+                    if(!row.trim()) return; 
                     
                     const cols = row.split(',');
-                    // โครงสร้าง CSV ที่ดึงมาจาก Python: Symbol,Price,EPS,SMA50,SMA200,RSI,ATR
                     const symbol = cols[0];
                     const price = parseFloat(cols[1]);
                     const eps = parseFloat(cols[2]);
@@ -86,79 +110,125 @@
                     const rsi = parseFloat(cols[5]);
                     const atr = parseFloat(cols[6]);
 
-                    // กฎความปลอดภัยขั้นสูงสุด (Defensive Fortress Logic)
                     const isUptrend = overSma50 && overSma200;
                     const isSafeEntry = rsi >= 40 && rsi <= 60;
-                    // Note: ถ้าดึง EPS ไม่ได้ชั่วคราว ให้ผ่านเกณฑ์ไว้ก่อน (ระบบเน้น Technical)
-                    const fundGood = eps >= 0; 
-
+                    
                     let tierClass = "tier-ignore";
                     let tierText = "🚫 IGNORE (อันตราย / ผิดทรง)";
+                    let filterType = "IGNORE";
 
                     if (!isUptrend) {
                         tierClass = "tier-ignore";
                         tierText = "🚫 IGNORE (หลุดเส้น 200 วัน)";
+                        filterType = "IGNORE";
                     } else if (isUptrend && rsi > 60) {
                         tierClass = "tier-wait";
                         tierText = "⚠️ WAIT PULLBACK (RSI สูงเกินไป)";
+                        filterType = "WAIT";
                     } else if (isUptrend && isSafeEntry) {
                         tierClass = "tier-safe";
                         tierText = "🎯 SAFE ENTRY (เข้าโซนปลอดภัย)";
+                        filterType = "SAFE";
                     }
 
-                    // คำนวณ ATR Dynamic Stop Loss
                     const risk = atr * 2;
                     const reward = atr * 4;
                     const slPrice = (price - risk).toFixed(2);
                     const tpPrice = (price + reward).toFixed(2);
 
-                    const card = `
-                        <div class="stock-card">
-                            <div class="card-header">
-                                <div class="symbol">${symbol}</div>
-                                <div class="current-price">฿${price.toFixed(2)}</div>
-                            </div>
-                            
-                            <div class="status-badge ${tierClass}">${tierText}</div>
-
-                            <div class="data-grid">
-                                <div class="data-item">
-                                    <span class="data-label">SMA 200</span>
-                                    <span class="data-value ${overSma200 ? 'pass' : 'fail'}">${overSma200 ? 'UP' : 'DOWN'}</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">SMA 50</span>
-                                    <span class="data-value ${overSma50 ? 'pass' : 'fail'}">${overSma50 ? 'UP' : 'DOWN'}</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">RSI</span>
-                                    <span class="data-value ${isSafeEntry ? 'pass' : (rsi > 60 ? 'warn' : 'fail')}">${rsi.toFixed(2)}</span>
-                                </div>
-                                <div class="data-item">
-                                    <span class="data-label">ATR (Vol)</span>
-                                    <span class="data-value" style="color: #fff;">${atr.toFixed(2)}</span>
-                                </div>
-                            </div>
-
-                            <div class="trading-plan">
-                                <div class="plan-title">ATR Plan (Risk ฿${risk.toFixed(2)} / Reward ฿${reward.toFixed(2)})</div>
-                                <div class="plan-flex">
-                                    <div class="plan-item"><span class="data-label">Entry</span><span class="plan-val">฿${price.toFixed(2)}</span></div>
-                                    <div class="plan-item"><span class="data-label">Stop (-2 ATR)</span><span class="plan-val plan-sl">฿${slPrice}</span></div>
-                                    <div class="plan-item"><span class="data-label">Target (+4 ATR)</span><span class="plan-val plan-tp">฿${tpPrice}</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += card;
+                    globalData.push({
+                        symbol, price, overSma50, overSma200, rsi, atr, 
+                        tierClass, tierText, filterType, risk, reward, slPrice, tpPrice
+                    });
                 });
 
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('controlPanel').style.display = 'flex';
+                
+                // สั่งวาดหน้าจอครั้งแรก
+                renderDashboard();
+
             } catch (error) {
-                document.getElementById('loading').innerText = "เชื่อมต่อฐานข้อมูลล้มเหลว โปรดเช็ก URL หรือตั้งค่า Repository เป็น Public";
+                document.getElementById('loading').innerText = "เชื่อมต่อฐานข้อมูลล้มเหลว โปรดเช็ก URL อีกครั้ง";
             }
         }
 
-        // สั่งให้เริ่มดึงข้อมูลทันทีเมื่อเปิดหน้าเว็บ
+        // ฟังก์ชันจัดการ Filter และ Sort
+        function renderDashboard() {
+            const filterValue = document.getElementById('filterSelect').value;
+            const sortValue = document.getElementById('sortSelect').value;
+            const container = document.getElementById('dashboard-content');
+            
+            // 1. คัดกรองข้อมูล (Filter)
+            let filteredData = globalData;
+            if (filterValue !== "ALL") {
+                filteredData = globalData.filter(stock => stock.filterType === filterValue);
+            }
+
+            // 2. เรียงลำดับข้อมูล (Sort)
+            if (sortValue === "SYMBOL") {
+                filteredData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+            } else if (sortValue === "RSI_ASC") {
+                filteredData.sort((a, b) => a.rsi - b.rsi);
+            } else if (sortValue === "ATR_DESC") {
+                filteredData.sort((a, b) => b.atr - a.atr);
+            }
+
+            // อัปเดตตัวเลขบอกจำนวน
+            document.getElementById('resultCount').innerText = `พบหุ้นเข้าเกณฑ์ ${filteredData.length} ตัว`;
+
+            // ล้างหน้าจอแล้ววาดใหม่
+            container.innerHTML = ''; 
+
+            if (filteredData.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">ไม่มีหุ้นที่เข้าเกณฑ์ในหมวดหมู่นี้</div>`;
+                return;
+            }
+
+            filteredData.forEach(stock => {
+                const card = `
+                    <div class="stock-card">
+                        <div class="card-header">
+                            <div class="symbol">${stock.symbol}</div>
+                            <div class="current-price">฿${stock.price.toFixed(2)}</div>
+                        </div>
+                        
+                        <div class="status-badge ${stock.tierClass}">${stock.tierText}</div>
+
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <span class="data-label">SMA 200</span>
+                                <span class="data-value ${stock.overSma200 ? 'pass' : 'fail'}">${stock.overSma200 ? 'UP' : 'DOWN'}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">SMA 50</span>
+                                <span class="data-value ${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UP' : 'DOWN'}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">RSI</span>
+                                <span class="data-value ${stock.filterType === 'SAFE' ? 'pass' : (stock.rsi > 60 ? 'warn' : 'fail')}">${stock.rsi.toFixed(2)}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="data-label">ATR (Vol)</span>
+                                <span class="data-value" style="color: #fff;">${stock.atr.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div class="trading-plan">
+                            <div class="plan-title">ATR Plan (Risk ฿${stock.risk.toFixed(2)} / Reward ฿${stock.reward.toFixed(2)})</div>
+                            <div class="plan-flex">
+                                <div class="plan-item"><span class="data-label">Entry</span><span class="plan-val">฿${stock.price.toFixed(2)}</span></div>
+                                <div class="plan-item"><span class="data-label">Stop (-2 ATR)</span><span class="plan-val plan-sl">฿${stock.slPrice}</span></div>
+                                <div class="plan-item"><span class="data-label">Target (+4 ATR)</span><span class="plan-val plan-tp">฿${stock.tpPrice}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        // เริ่มโหลดข้อมูล
         fetchGitHubData();
     </script>
 </body>
