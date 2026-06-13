@@ -5,7 +5,16 @@ import datetime
 
 # 1. ใส่รายชื่อหุ้นใน Watchlist ของคุณ (ต้องมี .BK ต่อท้ายสำหรับหุ้นไทย)
 # สามารถใส่ 100 ตัวได้เลยตามต้องการ
-tickers = ["KCE.BK", "ADVANC.BK", "DELTA.BK", "CPALL.BK", "PTTEP.BK", "BBL.BK"]
+tickers = [
+    "ADVANC.BK", "AOT.BK", "AWC.BK", "BBL.BK", "BDMS.BK", "BEM.BK", "BGRIM.BK", 
+    "BH.BK", "BJC.BK", "BLA.BK", "BTS.BK", "CBG.BK", "CENTEL.BK", "COM7.BK", 
+    "CPALL.BK", "CPF.BK", "CPN.BK", "CRC.BK", "DELTA.BK", "EA.BK", "EGCO.BK", 
+    "GLOBAL.BK", "GPSC.BK", "GULF.BK", "HMPRO.BK", "INTUCH.BK", "IRPC.BK", 
+    "IVL.BK", "KBANK.BK", "KCE.BK", "KTB.BK", "KTC.BK", "LH.BK", "MINT.BK", 
+    "MTC.BK", "OR.BK", "OSP.BK", "PTT.BK", "PTTEP.BK", "PTTGC.BK", "RATCH.BK", 
+    "SAWAD.BK", "SCB.BK", "SCC.BK", "SCGP.BK", "TISCO.BK", "TOP.BK", "TRUE.BK", 
+    "TTB.BK", "TU.BK"
+]
 
 results = []
 
