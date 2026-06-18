@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V16.1 Tactical Sniper</title>
+    <title>V17 Advanced Investing Engine</title>
     <style>
         :root {
             --bg-color: #0b0f19; --panel-bg: #111827; --text-main: #e5e7eb; --text-muted: #9ca3af;
@@ -13,95 +13,93 @@
 
         body { font-family: '-apple-system', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; }
         .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: var(--accent-blue); font-size: 1.6em; margin: 0 0 5px 0; letter-spacing: 1px; }
-        .header p { color: var(--text-muted); font-size: 0.85em; margin: 0; }
+        .header h1 { color: var(--accent-blue); font-size: 1.5em; margin: 0 0 5px 0; letter-spacing: 1px; }
+        .header p { color: var(--text-muted); font-size: 0.8em; margin: 0; }
         
-        /* Control Panel Styles */
+        /* Control Panel */
         .control-panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px; }
         .control-group { display: flex; gap: 10px; }
-        .control-panel select { flex: 1; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.9em; outline: none; appearance: none; }
-        .control-panel select:focus { border-color: var(--accent-blue); }
-        .result-count { text-align: center; font-size: 0.85em; color: var(--accent-yellow); font-weight: bold; margin-top: 5px; }
+        .control-panel select { flex: 1; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 0.85em; outline: none; }
+        .result-count { text-align: center; font-size: 0.85em; color: var(--accent-yellow); font-weight: bold; }
 
         .dashboard-container { max-width: 700px; margin: 0 auto; }
-
         .stock-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        .symbol { font-size: 1.6em; color: #fff; font-weight: 800; }
-        .current-price { font-size: 1.4em; font-weight: bold; color: #fff; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .symbol { font-size: 1.5em; color: #fff; font-weight: 800; }
+        .current-price { font-size: 1.3em; font-weight: bold; color: #fff; }
 
-        .status-badge { display: block; text-align: center; padding: 10px 0; border-radius: 8px; font-weight: 800; font-size: 0.95em; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .tier-safe { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .tier-wait { background-color: rgba(245, 158, 11, 0.1); color: var(--accent-yellow); border: 1px dashed var(--accent-yellow); }
-        .tier-ignore { background-color: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px dashed var(--accent-red); }
+        /* Investing.com Summary Meter Styles */
+        .summary-badge { display: block; text-align: center; padding: 12px 0; border-radius: 8px; font-weight: 900; font-size: 1em; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .status-strong-buy { background-color: rgba(16, 185, 129, 0.25); color: #10b981; border: 2px solid #10b981; }
+        .status-buy { background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid #3b82f6; }
+        .status-neutral { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px dashed #f59e0b; }
+        .status-sell { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px dashed #ef4444; }
 
-        .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; }
-        .data-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .data-label { font-size: 0.65em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
-        .data-value { font-size: 0.95em; font-weight: bold; }
-        
-        .pass { color: var(--accent-green); } .fail { color: var(--accent-red); } .warn { color: var(--accent-yellow); }
+        /* Multi-Indicator Display Grid */
+        .indicator-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .ind-item { display: flex; justify-content: space-between; font-size: 0.85em; padding: 4px 0; }
+        .ind-label { color: var(--text-muted); }
+        .ind-val { font-weight: bold; }
 
-        .trading-plan { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 15px; margin-top: 15px; }
-        .plan-title { font-size: 0.75em; color: var(--accent-blue); text-transform: uppercase; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        .trading-plan { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; }
+        .plan-title { font-size: 0.7em; color: var(--accent-blue); text-transform: uppercase; font-weight: bold; margin-bottom: 8px; text-align: center; }
         .plan-flex { display: flex; justify-content: space-between; }
         .plan-item { text-align: center; width: 33%; }
-        .plan-val { font-weight: 800; display: block; margin-top: 5px; font-size: 1.1em; }
+        .plan-val { font-weight: 800; display: block; margin-top: 3px; font-size: 1em; }
         .plan-sl { color: var(--accent-red); } .plan-tp { color: var(--accent-green); }
         
-        #loading { text-align: center; color: var(--accent-yellow); font-weight: bold; margin-top: 20px; font-size: 1.1em; }
+        #loading { text-align: center; color: var(--accent-yellow); font-weight: bold; margin-top: 20px; }
+        .pass { color: var(--accent-green); } .fail { color: var(--accent-red); } .warn { color: var(--accent-yellow); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🛡️ V16.1 TACTICAL SNIPER</h1>
-        <p>เชื่อมต่อ API สดจาก GitHub อัตโนมัติ 100%</p>
+        <h1>📊 V17 INVESTING ENGINE</h1>
+        <p>ระบบวิเคราะห์และจัดอันดับความปลอดภัยแบบผสาน 4 มิติ</p>
     </div>
 
     <div class="dashboard-container">
-        <!-- แผงควบคุม Filter & Sort -->
         <div class="control-panel" id="controlPanel" style="display: none;">
             <div class="control-group">
                 <select id="filterSelect" onchange="renderDashboard()">
-                    <option value="ALL">🔍 ดูกระสุนทั้งหมด (All)</option>
-                    <option value="SAFE">🎯 SAFE ENTRY (พร้อมยิง)</option>
-                    <option value="WAIT">⚠️ WAIT PULLBACK (รอย่อ)</option>
+                    <option value="ALL">🔍 สรุปภาพรวมหุ้นทั้งหมด</option>
+                    <option value="STRONG_BUY">🔥 STRONG BUY (สัญญาณเทพ)</option>
+                    <option value="BUY">📈 BUY (แนวโน้มดีน่าสน)</option>
+                    <option value="NEUTRAL">⚖️ NEUTRAL (นั่งทับมือไว้ก่อน)</option>
                 </select>
                 <select id="sortSelect" onchange="renderDashboard()">
-                    <option value="SYMBOL">เรียงตามชื่อ (A-Z)</option>
-                    <option value="RSI_ASC">RSI (ต่ำไปสูง)</option>
-                    <option value="ATR_DESC">ATR (สวิงแรงสุด)</option>
+                    <option value="SYMBOL">เรียงตามชื่อหุ้น (A-Z)</option>
+                    <option value="SCORE_DESC">เรียงตามความแข็งแกร่ง (มากไปน้อย)</option>
+                    <option value="RSI_ASC">เรียงตาม RSI (ต่ำไปสูง)</option>
                 </select>
             </div>
-            <div class="result-count" id="resultCount">กำลังประมวลผล...</div>
+            <div class="result-count" id="resultCount">กำลังคำนวณหน้าปัดวิเคราะห์...</div>
         </div>
 
-        <div id="loading">กำลังโหลดข้อมูลจากฐานข้อมูลสไนเปอร์...</div>
+        <div id="loading">กำลังเชื่อมต่อฐานข้อมูลควอนท์หลังบ้าน...</div>
         <div id="dashboard-content"></div>
     </div>
 
     <script>
         // 👉 เปลี่ยนตรงนี้เป็นลิงก์ "RAW" จาก GitHub ของคุณ
         const csvUrl = "https://raw.githubusercontent.com/dcce-dccre/thai-stock-scanner/refs/heads/main/data.csv"; 
-        let globalData = []; // เก็บข้อมูลไว้ในหน่วยความจำเพื่อคัดกรอง
+        let globalData = []; 
 
         async function fetchGitHubData() {
             try {
                 const cacheBuster = `?t=${new Date().getTime()}`;
                 const response = await fetch(csvUrl + cacheBuster);
-                
-                if (!response.ok) throw new Error("ดึงข้อมูลไม่สำเร็จ");
-                
+                if (!response.ok) throw new Error("Error");
                 const data = await response.text();
                 const rows = data.split('\n').slice(1); 
-                
-                globalData = []; // ล้างของเก่า
+                globalData = [];
 
                 rows.forEach(row => {
                     if(!row.trim()) return; 
-                    
                     const cols = row.split(',');
+                    
+                    // โครงสร้างดึงจาก Python: Symbol,Price,EPS,SMA50,SMA200,RSI,ATR,MACD_Bull,BB_Low,BB_High
                     const symbol = cols[0];
                     const price = parseFloat(cols[1]);
                     const eps = parseFloat(cols[2]);
@@ -109,27 +107,46 @@
                     const overSma200 = cols[4].trim().toLowerCase() === 'true';
                     const rsi = parseFloat(cols[5]);
                     const atr = parseFloat(cols[6]);
+                    const macdBull = cols[7].trim().toLowerCase() === 'true';
+                    const bbLow = parseFloat(cols[8]);
+                    const bbHigh = parseFloat(cols[9]);
 
-                    const isUptrend = overSma50 && overSma200;
-                    const isSafeEntry = rsi >= 40 && rsi <= 60;
-                    
-                    let tierClass = "tier-ignore";
-                    let tierText = "🚫 IGNORE (อันตราย / ผิดทรง)";
-                    let filterType = "IGNORE";
+                    // --- 🧠 ระบบให้คะแนนเลียนแบบ Investing.com ---
+                    let score = 0;
+                    if (overSma200) score += 1; // เทรนด์ใหญ่ขาขึ้น
+                    if (overSma50) score += 1;  // เทรนด์กลางหนุน
+                    if (rsi >= 40 && rsi <= 60) score += 1; // จังหวะราคาไม่แพงเกินไป
+                    if (macdBull) score += 1;   // โมเมนตัมตัดขึ้นหนุนราคา
 
-                    if (!isUptrend) {
-                        tierClass = "tier-ignore";
-                        tierText = "🚫 IGNORE (หลุดเส้น 200 วัน)";
-                        filterType = "IGNORE";
-                    } else if (isUptrend && rsi > 60) {
-                        tierClass = "tier-wait";
-                        tierText = "⚠️ WAIT PULLBACK (RSI สูงเกินไป)";
-                        filterType = "WAIT";
-                    } else if (isUptrend && isSafeEntry) {
-                        tierClass = "tier-safe";
-                        tierText = "🎯 SAFE ENTRY (เข้าโซนปลอดภัย)";
-                        filterType = "SAFE";
+                    let summaryText = "⚖️ NEUTRAL (ปกติ)";
+                    let summaryClass = "status-neutral";
+                    let filterGroup = "NEUTRAL";
+
+                    if (score === 4) {
+                        summaryText = "🔥 STRONG BUY (แกร่งสุดขีด)";
+                        summaryClass = "status-strong-buy";
+                        filterGroup = "STRONG_BUY";
+                    } else if (score === 3) {
+                        summaryText = "📈 BUY (สัญญาณน่าซื้อ)";
+                        summaryClass = "status-buy";
+                        filterGroup = "BUY";
+                    } else if (score <= 2) {
+                        // ถ้าหลุดเส้น 200 วัน ให้บังคับเป็น Sell ทันทีตามกฎพีระมิดรอดตาย
+                        if (!overSma200) {
+                            summaryText = "🔴 STRONG SELL (อันตรายห้ามยุ่ง)";
+                            summaryClass = "status-sell";
+                            filterGroup = "SELL";
+                        } else {
+                            summaryText = "⚖️ NEUTRAL (ชะลอการลงทุน)";
+                            summaryClass = "status-neutral";
+                            filterGroup = "NEUTRAL";
+                        }
                     }
+
+                    // ดูความสัมพันธ์กับกรอบราคา Bollinger Bands
+                    let bbPosition = "กลางกรอบ";
+                    if (price <= bbLow * 1.02) bbPosition = "แนวรับขอบล่าง (ถูก)";
+                    if (price >= bbHigh * 0.98) bbPosition = "แนวต้านขอบบน (แพง)";
 
                     const risk = atr * 2;
                     const reward = atr * 4;
@@ -137,51 +154,43 @@
                     const tpPrice = (price + reward).toFixed(2);
 
                     globalData.push({
-                        symbol, price, overSma50, overSma200, rsi, atr, 
-                        tierClass, tierText, filterType, risk, reward, slPrice, tpPrice
+                        symbol, price, eps, overSma50, overSma200, rsi, atr, macdBull, bbLow, bbHigh,
+                        score, summaryText, summaryClass, filterGroup, bbPosition, risk, reward, slPrice, tpPrice
                     });
                 });
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('controlPanel').style.display = 'flex';
-                
-                // สั่งวาดหน้าจอครั้งแรก
                 renderDashboard();
 
             } catch (error) {
-                document.getElementById('loading').innerText = "เชื่อมต่อฐานข้อมูลล้มเหลว โปรดเช็ก URL อีกครั้ง";
+                document.getElementById('loading').innerText = "ฐานข้อมูลขัดข้อง โปรดเช็กตัวแปรลิงก์ RAW GitHub";
             }
         }
 
-        // ฟังก์ชันจัดการ Filter และ Sort
         function renderDashboard() {
             const filterValue = document.getElementById('filterSelect').value;
             const sortValue = document.getElementById('sortSelect').value;
             const container = document.getElementById('dashboard-content');
             
-            // 1. คัดกรองข้อมูล (Filter)
             let filteredData = globalData;
             if (filterValue !== "ALL") {
-                filteredData = globalData.filter(stock => stock.filterType === filterValue);
+                filteredData = globalData.filter(stock => stock.filterGroup === filterValue);
             }
 
-            // 2. เรียงลำดับข้อมูล (Sort)
             if (sortValue === "SYMBOL") {
                 filteredData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+            } else if (sortValue === "SCORE_DESC") {
+                filteredData.sort((a, b) => b.score - a.score || a.symbol.localeCompare(b.symbol));
             } else if (sortValue === "RSI_ASC") {
                 filteredData.sort((a, b) => a.rsi - b.rsi);
-            } else if (sortValue === "ATR_DESC") {
-                filteredData.sort((a, b) => b.atr - a.atr);
             }
 
-            // อัปเดตตัวเลขบอกจำนวน
-            document.getElementById('resultCount').innerText = `พบหุ้นเข้าเกณฑ์ ${filteredData.length} ตัว`;
-
-            // ล้างหน้าจอแล้ววาดใหม่
+            document.getElementById('resultCount').innerText = `คัดกรองพบหุ้นตามเงื่อนไข ${filteredData.length} ตัว`;
             container.innerHTML = ''; 
 
             if (filteredData.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">ไม่มีหุ้นที่เข้าเกณฑ์ในหมวดหมู่นี้</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">ไม่พบหุ้นที่เข้าเกณฑ์ในโหมดนี้</div>`;
                 return;
             }
 
@@ -193,33 +202,21 @@
                             <div class="current-price">฿${stock.price.toFixed(2)}</div>
                         </div>
                         
-                        <div class="status-badge ${stock.tierClass}">${stock.tierText}</div>
+                        <div class="summary-badge ${stock.summaryClass}">${stock.summaryText}</div>
 
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <span class="data-label">SMA 200</span>
-                                <span class="data-value ${stock.overSma200 ? 'pass' : 'fail'}">${stock.overSma200 ? 'UP' : 'DOWN'}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">SMA 50</span>
-                                <span class="data-value ${stock.overSma50 ? 'pass' : 'fail'}">${stock.overSma50 ? 'UP' : 'DOWN'}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">RSI</span>
-                                <span class="data-value ${stock.filterType === 'SAFE' ? 'pass' : (stock.rsi > 60 ? 'warn' : 'fail')}">${stock.rsi.toFixed(2)}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="data-label">ATR (Vol)</span>
-                                <span class="data-value" style="color: #fff;">${stock.atr.toFixed(2)}</span>
-                            </div>
+                        <div class="indicator-box">
+                            <div class="ind-item"><span class="ind-label">Trend (SMA200)</span><span class="ind-val ${stock.overSma200 ? 'pass' : 'fail'}">${stock.overSma200 ? 'ขาขึ้น' : 'ขาลง'}</span></div>
+                            <div class="ind-item"><span class="ind-label">RSI (14 วัน)</span><span class="ind-val">${stock.rsi.toFixed(2)}</span></div>
+                            <div class="ind-item"><span class="ind-label">Momentum (MACD)</span><span class="ind-val ${stock.macdBull ? 'pass' : 'fail'}">${stock.macdBull ? 'ตัดขึ้น 🟢' : 'ตัดลง 🔴'}</span></div>
+                            <div class="ind-item"><span class="ind-label">กรอบราคา (BB)</span><span class="ind-val" style="color:#fff;">${stock.bbPosition}</span></div>
                         </div>
 
                         <div class="trading-plan">
-                            <div class="plan-title">ATR Plan (Risk ฿${stock.risk.toFixed(2)} / Reward ฿${stock.reward.toFixed(2)})</div>
+                            <div class="plan-title">ATR Defensive Plan (Risk 1 : Reward 2)</div>
                             <div class="plan-flex">
-                                <div class="plan-item"><span class="data-label">Entry</span><span class="plan-val">฿${stock.price.toFixed(2)}</span></div>
-                                <div class="plan-item"><span class="data-label">Stop (-2 ATR)</span><span class="plan-val plan-sl">฿${stock.slPrice}</span></div>
-                                <div class="plan-item"><span class="data-label">Target (+4 ATR)</span><span class="plan-val plan-tp">฿${stock.tpPrice}</span></div>
+                                <div class="plan-item"><span class="ind-label">ซื้อ (Entry)</span><span class="plan-val">฿${stock.price.toFixed(2)}</span></div>
+                                <div class="plan-item"><span class="ind-label">คัต (-2 ATR)</span><span class="plan-val plan-sl">฿${stock.slPrice}</span></div>
+                                <div class="plan-item"><span class="ind-label">ทำกำไร (+4 ATR)</span><span class="plan-val plan-tp">฿${stock.tpPrice}</span></div>
                             </div>
                         </div>
                     </div>
@@ -228,7 +225,6 @@
             });
         }
 
-        // เริ่มโหลดข้อมูล
         fetchGitHubData();
     </script>
 </body>
