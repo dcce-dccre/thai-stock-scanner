@@ -3,7 +3,7 @@ import pandas as pd
 import pandas_ta as ta
 import numpy as np
 
-# รายชื่อหุ้นเป้าหมายสำหรับสแกนคุณค่าและจังหวะปลอดภัย
+# รายชื่อหุ้นเป้าหมาย (เลือกเฉพาะตัวท็อปที่มีสภาพคล่อง)
 tickers = [
     "ADVANC.BK", "AOT.BK", "BBL.BK", "BDMS.BK", "CPALL.BK", 
     "CPF.BK", "CPN.BK", "DELTA.BK", "KBANK.BK", "KCE.BK", 
@@ -11,78 +11,68 @@ tickers = [
 ]
 
 results = []
-print("🚀 Starting Techno-Fundamental Engine (V18)...")
+print("🎯 Starting V18.2: Deep Value & Mean Reversion Engine...")
+print("กำลังสแกนหาหุ้นที่ถูกเทขายอย่างหนัก (RSI <= 30) แต่พื้นฐานยังแกร่ง!\n")
 
 for ticker in tickers:
     try:
         stock = yf.Ticker(ticker)
-        # ดึงข้อมูลย้อนหลัง 1 ปีเพื่อคำนวณเทคนิคอล
-        df = stock.history(period="1y")
-        if df.empty or len(df) < 200:
+        # ไม่จำเป็นต้องดึงข้อมูลยาว 1 ปีแล้ว เพราะเราไม่ได้ใช้ SMA 200
+        df = stock.history(period="6mo")
+        if df.empty or len(df) < 50:
             continue
             
-        # คำนวณตัวชี้วัดทางเทคนิคอล
-        df['SMA200'] = ta.sma(df['Close'], length=200)
+        # คำนวณเฉพาะ RSI เพื่อหาจุด Oversold
         df['RSI'] = ta.rsi(df['Close'], length=14)
         
         latest = df.iloc[-1]
         price = latest['Close']
         rsi_val = latest['RSI']
-        sma200_val = latest['SMA200']
         
         # ดึงข้อมูลปัจจัยพื้นฐาน (Fundamental Info)
         info = stock.info
         pe_ratio = info.get('trailingPE', None)
         div_yield = info.get('dividendYield', 0)
-        if div_yield is not None:
-            div_yield = div_yield * 100 # แปลงเป็นเปอร์เซ็นต์
-        else:
-            div_yield = 0.0
-            
-        earnings_growth = info.get('earningsGrowth', 0)
-        if earnings_growth is None:
-            earnings_growth = 0.0
+        div_yield = div_yield * 100 if div_yield is not None else 0.0
             
         symbol = ticker.replace(".BK", "")
         
-        # --- 📈 การประมวลผลเงื่อนไขการลงทุน (V18 Filters) ---
-        # 1. คัดกรองหุ้นถูก (P/E ต้องไม่สูงเว่อร์ และมีปันผลชวนอุ่นใจ)
+        # --- 📉 การประมวลผลเงื่อนไข (V18.2: Deep Value Filters) ---
+        # 1. ด่านความปลอดภัย: ธุรกิจต้องไม่พัง (P/E ต่ำกว่า 22, ปันผลมากกว่า 3.5%)
         is_good_valuation = (pe_ratio is not None) and (pe_ratio < 22.0)
         is_good_yield = div_yield >= 3.5
         
-        # 2. คัดกรองจังหวะกราฟ (ต้องไม่ใช่ขาลงเต็มตัว และราคาพักตัวไม่ไล่ดอย)
-        is_uptrend = price >= (sma200_val * 0.95) # ยอมรับระยะสะสมใกล้เส้น 200 วัน
-        is_safe_rsi = rsi_val <= 55.0
+        # 2. ด่านความตื่นตระหนก: กราฟต้องโดนทุบจนแหลก (RSI ลงมาต่ำกว่า 30)
+        is_panic_sold = rsi_val <= 30.0
         
-        # คำนวณคะแนนรวมความแข็งแกร่ง (เต็ม 4 คะแนน)
+        # คำนวณคะแนนรวมความแข็งแกร่ง (เต็ม 3 คะแนน)
         score = 0
         if is_good_valuation: score += 1
         if is_good_yield: score += 1
-        if is_uptrend: score += 1
-        if is_safe_rsi: score += 1
+        if is_panic_sold: score += 1
         
-        status = "HOLD / WATCH"
-        if score == 4:
-            status = "🔥 STRONG VALUE BUY"
-        elif score == 3:
-            status = "📈 INTERESTING VALUE"
+        status = "WAITING FOR PANIC"
+        if score == 3:
+            status = "🩸 BLOOD IN THE STREET (STRONG BUY)"
+        elif is_panic_sold and score < 3:
+            status = "🚨 PANIC SOLD (But Weak Fundament)"
             
         results.append({
             "Symbol": symbol,
             "Price": round(price, 2),
             "PE": round(pe_ratio, 2) if pe_ratio else "N/A",
             "Yield": f"{div_yield:.2f}%",
-            "Growth": f"{(earnings_growth*100):.1f}%" if earnings_growth else "0.0%",
             "RSI": round(rsi_val, 2) if not np.isnan(rsi_val) else "N/A",
             "Score": score,
             "Status": status
         })
-        print(f"✅ Analyzed {symbol} | Score: {score}")
+        # พิมพ์บอกความคืบหน้า เพื่อให้รู้ว่าบอทยังทำงานอยู่
+        print(f"✅ {symbol} | RSI: {rsi_val:.1f} | Score: {score}/3")
         
     except Exception as e:
         print(f"❌ Cannot process {ticker}: {e}")
 
-# บันทึกฐานข้อมูลออกมาใช้งานบนแดชบอร์ด
+# บันทึกฐานข้อมูล
 final_df = pd.DataFrame(results)
 final_df.to_csv("data.csv", index=False)
-print("🎯 Scanning complete! Data saved to data.csv")
+print("\n🎯 Deep Value Scanning complete! Data saved to data.csv")
